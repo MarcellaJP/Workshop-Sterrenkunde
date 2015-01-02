@@ -25,6 +25,7 @@ def readData():
     selected_data = []
     combination = []
     counter = 0
+    weighted_occurences = {}
     for row in data_reader:
         counter += 1
 
@@ -40,7 +41,7 @@ def readData():
         period = row[5]         # P (days)
         e = row[13]             # Orbital eccentricity
 
-        # if distance == "":
+
         if M_star != "" and period != "":
             # print "calculate distance"
             distance = getDistance(float(M_star), float(period))
@@ -50,25 +51,38 @@ def readData():
         # Distance (PC), T* (K), R* (R_solar), M* (M_solar), P (days)
         # print distance, row[51], row[59], row[55], row[13], row[5]
 
-
         # Geometric detection correction
         probability = solarRadiusToMeters(float(R_star))/parsecToMeters(float(distance))
 
+
+        # If curcial data is missing we have to skip this planet
         if T_star == "" or R_star == "":
             print T_star, R_star, distance, "SKIP"
             continue
 
+        # calculate planet temperature
         if e != "":
             T_planet = getPlanetTemperature(T_star, R_star, distance, float(e))
         else:
             T_planet = getPlanetTemperature(T_star, R_star, distance)
+
+
+        #
+        if T_planet in weighted_occurences:
+            weighted_occurences[T_planet] += 1/probability
+        else:
+            weighted_occurences[T_planet] = 1/probability
 
         combination.append([T_planet, probability])
         selected_data.append(T_planet)
         # R_star = float(solarRadiusToMeters(float(R_star_)))
         # distance = float(parsecToMeters(float(distance_)))
         # print distance, float(parsecToMeters(float(distance))), T_star, R_star, float(solarRadiusToMeters(float(R_star)))
-    return selected_data, combination
+    return selected_data, combination, weighted_occurences
+
+
+def makeBarchart(dicto, N_bins):
+    pass
 
 
 def makeHistogram(data, combination):
