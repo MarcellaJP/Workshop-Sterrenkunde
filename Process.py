@@ -1,5 +1,4 @@
 __author__ = 'Marcella Wijngaarden & Joris Schefold'
-#test test
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
@@ -32,13 +31,9 @@ def readData():
         counter += 1
 
         # Skip header lines
-        if counter < HEADER_ROWS -1 :
+        if row[0][0] == '#' or row[0][0] == 'r':
             continue
 
-
-
-        print row.index('pl_hostname')
-        assert False
         # Set variables to be retrieved
         distance = row[]      # Distance (PC)
         T_star = row[]        # T* (K)
@@ -61,19 +56,19 @@ def readData():
         probability = solarRadiusToMeters(float(R_star))/parsecToMeters(float(distance))
 
 
-        # If curcial data is missing we have to skip this planet
+        # Here can be checked if crucial data is present
         if T_star == "" or R_star == "":
             print T_star, R_star, distance, "SKIP"
             continue
 
-        # calculate planet temperature
+        # Calculate planet temperature
         if e != "":
             T_planet = getPlanetTemperature(T_star, R_star, distance, float(e))
         else:
             T_planet = getPlanetTemperature(T_star, R_star, distance)
 
 
-        #
+        # Weighted occurences are corrected planet occurences
         if T_planet in weighted_occurences:
             weighted_occurences[T_planet] += 1/probability
         else:
@@ -106,6 +101,7 @@ def makeBarchart(weighted_occurences, N_bins):
         x_labels.append(temperature)
         x_positions.append(temperature/temp_interval)
         temperature += tick_size
+
 
     plt.figure(FIGURE_COUNTER)
     FIGURE_COUNTER += 1
@@ -179,6 +175,14 @@ def median(mylist):
         return (sorts[length / 2] + sorts[length / 2 - 1]) / 2.0
     return sorts[length / 2]
 
+def massFromGravitation(g, r_planet):
+    """
+    Takes stellar surface gravitation in Log10(cm/s^2) and planet radius in solar radii.
+    Returns planet mass in kg.
+    """
+    g = (10**g) / 100.  # Converts units from Log10(cm/s^2) to m/s^2
+    r_planet = solarRadiusToMeters(r_planet)
+    return g * (r_planet**2) / G
 
 def solarMasstoKg(mass):
     return float(mass * SOLAR_MASS)
