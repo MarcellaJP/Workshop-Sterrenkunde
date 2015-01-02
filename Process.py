@@ -19,6 +19,8 @@ G = float(6.67384) * float((10**(-11)))  # Gravitational constant in  m^3 / (kg 
 PI = np.pi
 SOLAR_MASS = 1.9891 * float((10**30))  # Solar mass in kg
 FIGURE_COUNTER = 0
+
+
 def readData():
     openfile = open(FILE_NAME, 'r')
     data_reader = csv.reader(openfile)
@@ -30,16 +32,20 @@ def readData():
         counter += 1
 
         # Skip header lines
-        if counter < HEADER_ROWS:
+        if counter < HEADER_ROWS -1 :
             continue
 
+
+
+        print row.index('pl_hostname')
+        assert False
         # Set variables to be retrieved
-        distance = row[43]      # Distance (PC)
-        T_star = row[51]        # T* (K)
-        R_star = row[59]        # R* (R_solar)
-        M_star = row[55]        # M* (M_solar)
-        period = row[5]         # P (days)
-        e = row[13]             # Orbital eccentricity
+        distance = row[]      # Distance (PC)
+        T_star = row[]        # T* (K)
+        R_star = row[]        # R* (R_solar)
+        M_star = row[]        # M* (M_solar)
+        period = row[]         # P (days)
+        e = row[]             # Orbital eccentricity
 
 
         if M_star != "" and period != "":
@@ -93,14 +99,6 @@ def makeBarchart(weighted_occurences, N_bins):
         weighted_occurences_list[int((temperature - starting_temp )/temp_interval)] += weighted_occurences[temperature]
 
     x_labels = []
-    N_xticks = 6
-    for i in range(N_xticks):
-        x_labels.append(starting_temp + temp_range * i / N_xticks)
-    x_labels.append(int(max(temp_list)))
-    x_positions = np.arange(len(x_labels) - 1)*float(N_bins)/len(x_labels)
-    x_positions = np.append(x_positions, N_bins)
-
-    x_labels = []
     tick_size = 1000
     x_positions = []
     temperature = starting_temp
@@ -109,15 +107,11 @@ def makeBarchart(weighted_occurences, N_bins):
         x_positions.append(temperature/temp_interval)
         temperature += tick_size
 
-
     plt.figure(FIGURE_COUNTER)
     FIGURE_COUNTER += 1
     plt.bar(left=range(N_bins), height=weighted_occurences_list)
     plt.tight_layout()
     plt.xticks(x_positions, x_labels)
-    print x_positions, x_labels
-    plt.show()
-    assert False
 
 
 def makeHistogram(data, combination):
