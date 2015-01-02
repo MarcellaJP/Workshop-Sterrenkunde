@@ -1,7 +1,7 @@
 __author__ = 'Marcella Wijngaarden & Joris Schefold'
 #test test
 import csv
-import numpy
+import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
@@ -16,7 +16,7 @@ HEADER_ROWS = 75
 BINS = 60
 
 G = float(6.67384) * float((10**(-11)))  # Gravitational constant in  m^3 / (kg * s^2)
-PI = numpy.pi
+PI = np.pi
 SOLAR_MASS = 1.9891 * float((10**30))  # Solar mass in kg
 FIGURE_COUNTER = 0
 def readData():
@@ -81,8 +81,43 @@ def readData():
     return selected_data, combination, weighted_occurences
 
 
-def makeBarchart(dicto, N_bins):
-    pass
+def makeBarchart(weighted_occurences, N_bins):
+    global FIGURE_COUNTER
+    weighted_occurences_list = [0 for _ in range(N_bins)]
+    temp_list = weighted_occurences.keys()
+    starting_temp = 0
+    temp_range = max(temp_list) - starting_temp
+    temp_interval = temp_range / float(N_bins)
+
+    for temperature in temp_list:
+        weighted_occurences_list[int((temperature - starting_temp )/temp_interval)] += weighted_occurences[temperature]
+
+    x_labels = []
+    N_xticks = 6
+    for i in range(N_xticks):
+        x_labels.append(starting_temp + temp_range * i / N_xticks)
+    x_labels.append(int(max(temp_list)))
+    x_positions = np.arange(len(x_labels) - 1)*float(N_bins)/len(x_labels)
+    x_positions = np.append(x_positions, N_bins)
+
+    x_labels = []
+    tick_size = 1000
+    x_positions = []
+    temperature = starting_temp
+    while temperature < max(temp_list):
+        x_labels.append(temperature)
+        x_positions.append(temperature/temp_interval)
+        temperature += tick_size
+
+
+    plt.figure(FIGURE_COUNTER)
+    FIGURE_COUNTER += 1
+    plt.bar(left=range(N_bins), height=weighted_occurences_list)
+    plt.tight_layout()
+    plt.xticks(x_positions, x_labels)
+    print x_positions, x_labels
+    plt.show()
+    assert False
 
 
 def makeHistogram(data, combination):
@@ -108,7 +143,7 @@ def makeHistogram(data, combination):
     # plt.xlim(640, 740)
     # plt.ylim(0, 13)
     # print min(data), max(data)
-    hist, bins = numpy.histogram(data, bins=BINS) #, label="Kepler planets with known distance: " + str(len(data)))  # 729
+    hist, bins = np.histogram(data, bins=BINS) #, label="Kepler planets with known distance: " + str(len(data)))  # 729
     corrections = []
 
     for i in range(len(bins)-1):
@@ -123,7 +158,7 @@ def makeHistogram(data, combination):
         else:
             average_bin_probability = 1
             median_bin_probability = 1
-        print average_bin_probability
+        # print average_bin_probability
         corrections.append(median_bin_probability)
 
     corrected_hist = []
@@ -192,7 +227,6 @@ def getPlanetTemperature(T_star_, R_star_, distance_, e=0, albedo=0):
 
 
 data = readData()
+makeBarchart(data[2], BINS)
 makeHistogram(data[0], data[1])
 plt.show()
-
-t
