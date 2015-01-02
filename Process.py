@@ -9,7 +9,7 @@ import sys
 
 FILE = "planets_withPandM.csv"
 # FILE = "planets.csv"
-FILE_NAME = os.getcwd()[:-21] + "Data\\" + FILE
+FILE_NAME = "Data\\" + FILE
 
 
 HEADER_ROWS = 75
