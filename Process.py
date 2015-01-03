@@ -179,11 +179,11 @@ def median(mylist):
 def massFromGravitation(g, r_planet):
     """
     Takes stellar surface gravitation in Log10(cm/s^2) and planet radius in Jupiter radii.
-    Returns planet mass in kg.
+    Returns planet mass in Solar Mass units.
     """
-    g = (10**float(g)) / 100.  # Converts units from Log10(cm/s^2) to m/s^
+    g = (10**float(g)) / 100.  # Converts units from Log10(cm/s^2) to m/s^2
     r_planet = jupiterRadiusToMeters(float(r_planet))
-    return g * (r_planet**2) / G
+    return (g * (r_planet**2) / G) / SOLAR_MASS
 
 def solarMasstoKg(mass):
     return float(mass * SOLAR_MASS)
