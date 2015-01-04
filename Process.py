@@ -4,10 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
+import time
 
-
+# FILE = "planets_withPandM.csv"
 FILE = "planets.csv"
-# FILE = "planets.csv"
 FILE_NAME = "Data\\" + FILE
 
 
@@ -17,6 +17,8 @@ G = float(6.67384) * float((10**(-11)))  # Gravitational constant in  m^3 / (kg 
 PI = np.pi
 SOLAR_MASS = 1.9891 * float((10**30))  # Solar mass in kg
 FIGURE_COUNTER = 0
+YEAR = 365.25
+MISSIONLENGTH = 4*YEAR
 
 
 def readData():
@@ -33,18 +35,21 @@ def readData():
         row = data_reader.next()
     label_row = row
 
-    count = 0
+    koude_planeten = 0
     for row in data_reader:
-        count += 1
         # Set variables to be retrieved
         distance = row[label_row.index("st_dist")]      # Distance (PC)
         T_star = row[label_row.index("st_teff")]        # T* (K)
         R_star = row[label_row.index("st_rad")]        # R* (R_solar)
         M_star = row[label_row.index("st_mass")]        # M* (M_solar)
-        period = row[label_row.index("pl_orbper")]         # P (days)
+        period = float(row[label_row.index("pl_orbper")])         # P (days)
         R_planet = row[label_row.index("pl_radj")]         # Planet radius in Jupiter Radius
         gravitation = row[label_row.index("st_logg")]      # Stellar surface gravitation in Log10(cm/s^2)
         e = row[label_row.index("pl_orbeccen")]             # Orbital eccentricity
+        discovery_method = row[label_row.index("pl_discmethod")]
+
+        if discovery_method != "Transit":
+            continue
 
         if M_star != "" and period != "":
             # print "calculate distance"
@@ -59,15 +64,25 @@ def readData():
             print T_star, R_star, distance, "SKIP"
             continue
 
-        # Geometric detection correction
-        probability = solarRadiusToMeters(float(R_star))/parsecToMeters(float(distance))
-
         # Calculate planet temperature
         if e != "":
             T_planet = getPlanetTemperature(T_star, R_star, distance, float(e))
         else:
             T_planet = getPlanetTemperature(T_star, R_star, distance)
+        if T_planet < 10:
+            koude_planeten += 1
+            print "cold planet"
+            continue
 
+        # Geometric detection correction
+        geometric_probability = solarRadiusToMeters(float(R_star))/parsecToMeters(float(distance))
+
+        timing_probability = 1
+        if 2 < MISSIONLENGTH / period < 3:
+            time_period = MISSIONLENGTH % period  # Period in which a transit must occure
+            timing_probability = time_period / YEAR
+
+        probability = geometric_probability * timing_probability
 
         # Weighted occurences are corrected planet occurences
         if T_planet in weighted_occurences:
@@ -80,10 +95,8 @@ def readData():
         # R_star = float(solarRadiusToMeters(float(R_star_)))
         # distance = float(parsecToMeters(float(distance_)))
         # print distance, float(parsecToMeters(float(distance))), T_star, R_star, float(solarRadiusToMeters(float(R_star)))
-
-    print selected_data
-    print len(combination)
-    print 'total datalines : ', count
+    print max(weighted_occurences.keys())
+    print koude_planeten
     return selected_data, combination, weighted_occurences
 
 
@@ -96,15 +109,15 @@ def makeBarchart(weighted_occurences, N_bins):
     temp_interval = temp_range / float(N_bins)
 
     for temperature in temp_list:
-        weighted_occurences_list[int((temperature - starting_temp)/float(temp_interval))] += weighted_occurences[temperature]
-
+        weighted_occurences_list[int((temperature - starting_temp ) / temp_interval - 10**-6)] += weighted_occurences[temperature]
+    print weighted_occurences_list
     x_labels = []
     tick_size = 1000
     x_positions = []
     temperature = starting_temp
     while temperature < max(temp_list):
         x_labels.append(temperature)
-        x_positions.append(temperature/float(temp_interval))
+        x_positions.append(temperature/temp_interval)
         temperature += tick_size
 
 
@@ -176,6 +189,7 @@ def median(mylist):
         return (sorts[length / 2] + sorts[length / 2 - 1]) / 2.0
     return sorts[length / 2]
 
+
 def massFromGravitation(g, r_planet):
     """
     Takes stellar surface gravitation in Log10(cm/s^2) and planet radius in Jupiter radii.
@@ -184,6 +198,7 @@ def massFromGravitation(g, r_planet):
     g = (10**float(g)) / 100.  # Converts units from Log10(cm/s^2) to m/s^2
     r_planet = jupiterRadiusToMeters(float(r_planet))
     return (g * (r_planet**2) / G) / SOLAR_MASS
+
 
 def solarMasstoKg(mass):
     return float(mass * SOLAR_MASS)
@@ -196,8 +211,10 @@ def daysToSeconds(days):
 def metersToParsec(meters):
     return float(meters) * 3.24077929 * (10**(-17))
 
+
 def jupiterRadiusToMeters(radius):
     return float(radius) * 69911000
+
 
 def solarRadiusToMeters(radius):
     return float(radius) * 6.955*(10**8)
@@ -229,5 +246,5 @@ def getPlanetTemperature(T_star_, R_star_, distance_, e=0, albedo=0):
 
 data = readData()
 makeBarchart(data[2], BINS)
-makeHistogram(data[0], data[1])
+# makeHistogram(data[0], data[1])
 plt.show()
