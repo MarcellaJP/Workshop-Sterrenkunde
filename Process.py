@@ -90,27 +90,44 @@ def readData():
 def makeBarchart(weighted_occurences, N_bins):
     global FIGURE_COUNTER
     weighted_occurences_list = [0 for _ in range(N_bins)]
+
     temp_list = weighted_occurences.keys()
     starting_temp = 0
-    temp_range = max(temp_list) - starting_temp
+    temp_range = 500 # max(temp_list) - starting_temp
     temp_interval = temp_range / float(N_bins)
 
+    font = {'size': 18}
+    plt.rc('font', **font)
+
+    HZ_count = 0
+    pl_count = 0
     for temperature in temp_list:
-        weighted_occurences_list[int((temperature - starting_temp)/float(temp_interval))] += weighted_occurences[temperature]
+        if temperature <= temp_range:
+            weighted_occurences_list[int((temperature - starting_temp)/float(temp_interval))] += weighted_occurences[temperature]
+            pl_count += weighted_occurences[temperature]
+            if temperature >= 273 and temperature <= 373:
+                HZ_count += weighted_occurences[temperature]
+                print temperature, 'HZ !!!!!!!!!!!!!!!!1'
+        else:
+            continue
 
     x_labels = []
-    tick_size = 1000
+    tick_size = 50 # 1000
     x_positions = []
     temperature = starting_temp
-    while temperature < max(temp_list):
+    while temperature < 500: # max(temp_list):
         x_labels.append(temperature)
         x_positions.append(temperature/float(temp_interval))
         temperature += tick_size
 
-
     plt.figure(FIGURE_COUNTER)
+    plt.title("Corrected Kepler planet distribution")
+    plt.xlabel("Temperature (K)", fontsize='17')
+    plt.ylabel("Number of planets", fontsize='17')
     FIGURE_COUNTER += 1
-    plt.bar(left=range(N_bins), height=weighted_occurences_list)
+    plt.bar(left=range(N_bins), height=weighted_occurences_list, label="Planets in HZ : " + str(int(round(HZ_count))) \
+                                                                       + " of " + str(int(round(pl_count))))
+    plt.legend(loc='upper right', fontsize='17')
     plt.tight_layout()
     plt.xticks(x_positions, x_labels)
 
@@ -134,6 +151,7 @@ def makeHistogram(data, combination):
     plt.xlabel(XLABEL_2)
     plt.ylabel("Number of planets")
     plt.hist(data, bins=30, label="Nr of planets " + str(len(data)))
+    plt.legend()
     hist, bins = np.histogram(data, bins=BINS) #, label="Kepler planets with known distance: " + str(len(data)))  # 729
     corrections = []
 
@@ -229,5 +247,5 @@ def getPlanetTemperature(T_star_, R_star_, distance_, e=0, albedo=0):
 
 data = readData()
 makeBarchart(data[2], BINS)
-makeHistogram(data[0], data[1])
+# makeHistogram(data[0], data[1])
 plt.show()
