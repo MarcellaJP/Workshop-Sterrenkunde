@@ -2,9 +2,6 @@ __author__ = 'Marcella Wijngaarden & Joris Schefold'
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
-import copy
-import time
-import scipy
 
 # FILE = "planets_withPandM.csv"
 # FILE = "planets.csv"
@@ -20,6 +17,7 @@ YEAR = 365.25
 MISSIONLENGTH = 4*YEAR
 
 
+<<<<<<< HEAD
 class Planet:
     def __init__(self, row, label_row):
         # Set variables to be retrieved
@@ -101,6 +99,8 @@ class Planet:
         return True
 
 
+=======
+>>>>>>> origin/master
 def readData():
     openfile = open(FILE_NAME, 'r')
     data_reader = csv.reader(openfile)
@@ -108,78 +108,100 @@ def readData():
     combination = []
     counter = 0
     weighted_occurences = {}
-    planets = []
-
+    weighted_occurences_data = {}
     # Skip header lines
     row = data_reader.next()
     while row[0][0] == '#':
         row = data_reader.next()
     label_row = row
 
+    koude_planeten = 0
     for row in data_reader:
         # if row[label_row.index("koi_disposition")] != "CONFIRMED":
-        if row[label_row.index("koi_pdisposition")] != "CANDIDATE":
-            continue
-
-        counter += 1
-        planet = Planet(row, label_row)
-        if not planet.vitalDataAvailible():
-            continue
-        planet.calculateDistance()
-        planet.calculateTemperature()
-        # planet.calculateDensity()
-
-        if float(planet.R_planet) > 500:
-            print "huge radius ({0}), SKIP".format(planet.R_planet)
-            continue
-
-        # if planet.density > 8000:
-        #     print "denser then Iron, SKIP"
         #     continue
 
+        counter += 1
+
+        # Set variables to be retrieved
+        distance = row[label_row.index("koi_sma")]      # Distance (AU)
+        T_star = row[label_row.index("koi_steff")]        # T* (K)
+        R_star = row[label_row.index("koi_srad")]        # R* (R_solar)
+        M_star = row[label_row.index("koi_smass")]        # M* (M_solar)
+        period = float(row[label_row.index("koi_period")])         # P (days)
+        R_planet = row[label_row.index("koi_prad")]         # Planet radius in Earth Radius
+        T_planet_dat = row[label_row.index("koi_teq")]
+        gravitation = row[label_row.index("koi_slogg")]      # Stellar surface gravitation in Log10(cm/s^2)
+        e = row[label_row.index("koi_eccen")]             # Orbital eccentricity
+        nr_transits = row[label_row.index("koi_num_transits")]  # Number of transits
+        confirmed =  row[label_row.index("koi_disposition")]  # CONFIRMED / CANDIDATE
+
+        # if nr_transits > 0:
+        #     continue
+
+        if M_star != "" and period != "":
+            distance = getDistance(float(M_star), float(period))
+        else:
+            if R_planet != "":
+                M_star = massFromGravitation(gravitation, R_planet)
+                distance = getDistance(float(M_star), float(period))
+
+        # Here can be checked if crucial data is present
+        if T_star == "" or R_star == "" or distance == "":
+            print T_star, R_star, distance, "SKIP"
+            continue
+
+        # Calculate planet temperature
+        if e != "":
+            T_planet = getPlanetTemperature(T_star, R_star, distance, float(e))
+        else:
+            T_planet = getPlanetTemperature(T_star, R_star, distance)
+        if T_planet < 10:
+            koude_planeten += 1
+            print "cold planet"
+            continue
+        if T_planet < 188:
+            print T_planet, period/365.25
+
         # Geometric detection correction
-        geometric_probability = solarRadiusToMeters(float(planet.R_star))/AUToMeters(float(planet.distance))
-        planet.setGemetricProbability(geometric_probability)
+        geometric_probability = solarRadiusToMeters(float(R_star))/AUToMeters(float(distance))
 
         timing_probability = 1
-        if 2 < MISSIONLENGTH / planet.period < 3:
-            time_period = MISSIONLENGTH % planet.period  # Period in which a transit must occure
-            timing_probability = time_period / planet.period
-        planet.setTimingProbability(timing_probability)
+        if 2 < MISSIONLENGTH / period < 3:
+            time_period = MISSIONLENGTH % period  # Period in which a transit must occure
+            timing_probability = time_period / period
 
-        planet.calulateTotalProbability()
+        probability = geometric_probability * timing_probability
 
-        planets.append(planet)
+        # Use Kepler Planet temperature if available
+        if T_planet_dat != "":
+            T_planet = int(float(T_planet_dat))
 
-
-    planets = removeFlukes(planets)
-    for planet in planets:
         # Weighted occurences are corrected planet occurences
-        if planet.T_planet in weighted_occurences:
-            weighted_occurences[planet.T_planet] += 1/planet.probability
+        if T_planet in weighted_occurences:
+            weighted_occurences[T_planet] += 1/probability
         else:
-            weighted_occurences[planet.T_planet] = 1/planet.probability
+            weighted_occurences[T_planet] = 1/probability
 
-        combination.append([planet.T_planet, planet.probability])
-        selected_data.append(planet.T_planet)
+        # if T_planet_dat != "":
+        #     # print T_planet_dat, " and ", T_planet
+        #     if T_planet_dat in weighted_occurences_data:
+        #         weighted_occurences_data[T_planet_dat] += 1/probability
+        #     else:
+        #         weighted_occurences_data[T_planet_dat] = 1/probability
 
-    print "total planets", len(planets)
-    return planets, combination, weighted_occurences
+        combination.append([T_planet, probability])
+        selected_data.append(T_planet)
+        # R_star = float(solarRadiusToMeters(float(R_star_)))
+        # distance = float(parsecToMeters(float(distance_)))
+        # print distance, float(parsecToMeters(float(distance))), T_star, R_star, float(solarRadiusToMeters(float(R_star)))
 
-
-def removeFlukes(planets, fluke_treshold = 1.0/10**3):
-    planets_ro_remove = []
-    for planet in planets:
-        if planet.probability < fluke_treshold:
-            print "there was a really unlikelly planet with temperature: {0} and chance {1}\
-             ".format(planet.T_planet, planet.probability)
-            if planet.standAlone(planets):
-                print "A planet with temperature {0} was remvoed".format(planet.T_planet)
-                planets_ro_remove.append(planet)
-
-    for planet in planets_ro_remove:
-        planets.remove(planet)
-    return planets
+    # print weighted_occurences
+    print len(combination)
+    print 'count = ', counter
+    print 'total datalines : ', counter
+    # print weighted_occurences
+    # print weighted_occurences_data
+    return selected_data, combination, weighted_occurences
 
 
 def makeBarchart(weighted_occurences, N_bins):
@@ -291,30 +313,12 @@ def makeHistogram(data, combination):
     FIGURE_COUNTER += 1
 
 
-def makeScatter(planets, x_axis="T_planet", y_axis="R_planet", axis = None):
-    global FIGURE_COUNTER
-    x_list = []
-    y_list = []
-    for planet in planets:
-        x_list.append(float(eval("planet."+x_axis)))
-        y_list.append(float(eval("planet."+y_axis)))
-
-    plt.figure(FIGURE_COUNTER)
-    FIGURE_COUNTER += 1
-    plt.xlabel(x_axis)
-    plt.ylabel(y_axis)
-    if axis != None:
-        plt.axis(axis)
-    plt.scatter(x_list, y_list)
-
-
 def median(mylist):
     sorts = sorted(mylist)
     length = len(sorts)
     if not length % 2:
         return (sorts[length / 2] + sorts[length / 2 - 1]) / 2.0
     return sorts[length / 2]
-
 
 def massFromGravitation(g, r_planet):
     """
@@ -324,7 +328,6 @@ def massFromGravitation(g, r_planet):
     g = (10**float(g)) / 100.  # Converts units from Log10(cm/s^2) to m/s^2
     r_planet = earthRadiusToMeters(float(r_planet))
     return (g * (r_planet**2) / G) / SOLAR_MASS
-
 
 def solarMasstoKg(mass):
     return float(mass * SOLAR_MASS)
@@ -346,10 +349,6 @@ def jupiterRadiusToMeters(radius):
     return float(radius) * 69911000
 
 
-def jupiterMassToKg(mass):
-    return float(mass) * 1.89813*10**27
-
-
 def solarRadiusToMeters(radius):
     return float(radius) * 6.955*(10**8)
 
@@ -365,11 +364,6 @@ def metersToAU(meters):
 def AUToMeters(AU):
     return float(AU) * 1.49597870700 * 10**11
 
-
-def kgToEarthMass(mass):
-    return mass /(5.97219*10**24)
-
-
 def getDistance(mass, period):
     """
     Use Kepler's third law to calculate the distance between planet and star given M_star and P_orbit
@@ -377,7 +371,7 @@ def getDistance(mass, period):
     return metersToAU((G * solarMasstoKg(mass) * (daysToSeconds(period)**2) / (4 * PI**2))**(1/3.))
 
 
-def getPlanetTemperature(T_star_, R_star_, distance_, e=0, albedo=.3):
+def getPlanetTemperature(T_star_, R_star_, distance_, e=0, albedo=0):
     """
     For a given star temperature and distance calculates the temperature (K) of the planet. Based on the equality of
     L_in and L_out.
@@ -391,8 +385,6 @@ def getPlanetTemperature(T_star_, R_star_, distance_, e=0, albedo=.3):
 
 
 data = readData()
-# makeBarchart(data[2], BINS)
-makeScatter(data[0])
-makeScatter(data[0], axis=[-500,3000, -5, 10])
+makeBarchart(data[2], BINS)
 # makeHistogram(data[0], data[1])
 plt.show()
