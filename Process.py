@@ -17,7 +17,6 @@ YEAR = 365.25
 MISSIONLENGTH = 4*YEAR
 
 
-<<<<<<< HEAD
 class Planet:
     def __init__(self, row, label_row):
         # Set variables to be retrieved
@@ -99,8 +98,6 @@ class Planet:
         return True
 
 
-=======
->>>>>>> origin/master
 def readData():
     openfile = open(FILE_NAME, 'r')
     data_reader = csv.reader(openfile)
