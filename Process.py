@@ -35,7 +35,7 @@ class Planet:
         #         print self.R_planet, "<==========="
         # except:
         #     print row[label_row.index("koi_prad")]
-        self.T_planet_dat = row[label_row.index("koi_teq")]
+        self.T_planet_dat = row[label_row.index("koi_teq")]  # Kelvin
         self.gravitation = row[label_row.index("koi_slogg")]      # Stellar surface gravitation in Log10(cm/s^2)
         self.e = row[label_row.index("koi_eccen")]             # Orbital eccentricity
         self.nr_transits = row[label_row.index("koi_num_transits")]  # Number of transits
