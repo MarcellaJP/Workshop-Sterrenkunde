@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e3cfdce1-3b82-432f-bec4-3f2325832eab" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Data/cumulative.csv" />
+    <list default="true" id="e3cfdce1-3b82-432f-bec4-3f2325832eab" name="Default" comment="Timing probability en discovery method toegevoegd">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Process.py" afterPath="$PROJECT_DIR$/Process.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/WorkshopSterrenkunde.iml" afterPath="$PROJECT_DIR$/.idea/WorkshopSterrenkunde.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
@@ -31,31 +30,23 @@
       <file leaf-file-name="Process.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Process.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.33144477" vertical-offset="1158" max-vertical-offset="5287">
-              <caret line="75" column="17" selection-start-line="75" selection-start-column="12" selection-end-line="75" selection-end-column="17" />
+            <state vertical-scroll-proportion="0.3207547" vertical-offset="0" max-vertical-offset="4216">
+              <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
               <folding>
                 <element signature="e#53#63#0" expanded="true" />
+                <element signature="e#1817#2079#0" expanded="false" />
+                <element signature="e#2122#2457#0" expanded="false" />
+                <element signature="e#2503#2911#0" expanded="false" />
+                <element signature="e#2953#3053#0" expanded="false" />
+                <element signature="e#3100#3280#0" expanded="false" />
+                <element signature="e#3351#3401#0" expanded="false" />
+                <element signature="e#3467#3511#0" expanded="false" />
+                <element signature="e#3561#3709#0" expanded="false" />
+                <element signature="e#3785#4056#0" expanded="false" />
+                <element signature="e#6238#6757#0" expanded="false" />
+                <element signature="e#6811#8829#0" expanded="false" />
+                <element signature="e#8875#10624#0" expanded="false" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="cumulative.csv" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Data/cumulative.csv">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="625" max-vertical-offset="72862">
-              <caret line="50" column="16" selection-start-line="50" selection-start-column="9" selection-end-line="50" selection-end-column="16" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="planets.csv" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Data/planets.csv">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="3781" max-vertical-offset="18768">
-              <caret line="235" column="20" selection-start-line="235" selection-start-column="20" selection-end-line="235" selection-end-column="20" />
-              <folding />
             </state>
           </provider>
         </entry>
@@ -70,15 +61,16 @@
   <component name="Git.Settings">
     <option name="PREVIOUS_COMMIT_AUTHORS">
       <list>
-        <option value="MarcellaJP" />
+        <option value="joris" />
       </list>
     </option>
+    <option name="UPDATE_TYPE" value="MERGE" />
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/Data/cumulative.csv" />
+        <option value="$PROJECT_DIR$/python test.py" />
         <option value="$PROJECT_DIR$/Process.py" />
       </list>
     </option>
@@ -123,30 +115,6 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
           </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WorkshopSterrenkunde" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WorkshopSterrenkunde" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WorkshopSterrenkunde" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="WorkshopSterrenkunde" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="Data" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
         </subPane>
       </pane>
       <pane id="Scope" />
@@ -159,19 +127,35 @@
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="options.splitter.details.proportions" value="0.2" />
     <property name="options.searchVisible" value="true" />
+    <property name="FullScreen" value="false" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
       <console-settings />
     </option>
   </component>
-  <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\Marcella Wijngaarden\Documents\GitHub\WorkshopSterrenkunde\Data" />
-    </key>
-  </component>
   <component name="RunManager" selected="Python.Process">
     <configuration default="false" name="Process" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="C:\Python27\python.exe" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="WorkshopSterrenkunde" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Process.py" />
+      <option name="PARAMETERS" value="" />
+      <RunnerSettings RunnerId="PyDebugRunner" />
+      <RunnerSettings RunnerId="PythonRunner" />
+      <ConfigurationWrapper RunnerId="PyDebugRunner" />
+      <ConfigurationWrapper RunnerId="PythonRunner" />
+      <method />
+    </configuration>
+    <configuration default="false" name="python test" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -183,7 +167,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="WorkshopSterrenkunde" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Process.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/python test.py" />
       <option name="PARAMETERS" value="" />
       <RunnerSettings RunnerId="PythonRunner" />
       <ConfigurationWrapper RunnerId="PythonRunner" />
@@ -310,12 +294,14 @@
       <option name="USE_PATTERN" value="false" />
       <method />
     </configuration>
-    <list size="1">
+    <list size="2">
       <item index="0" class="java.lang.String" itemvalue="Python.Process" />
+      <item index="1" class="java.lang.String" itemvalue="Python.python test" />
     </list>
     <recent_temporary>
-      <list size="1">
+      <list size="2">
         <item index="0" class="java.lang.String" itemvalue="Python.Process" />
+        <item index="1" class="java.lang.String" itemvalue="Python.python test" />
       </list>
     </recent_temporary>
   </component>
@@ -329,43 +315,55 @@
       <created>1420213809243</created>
       <updated>1420213809243</updated>
     </task>
-    <task id="LOCAL-00001" summary="Added function mass from gravitation">
-      <created>1420286976231</created>
-      <updated>1420286976231</updated>
+    <task id="LOCAL-00001" summary="Timing probability en discovery method toegevoegd">
+      <created>1420395856208</created>
+      <updated>1420395856208</updated>
     </task>
-    <task id="LOCAL-00002" summary="Mass function now in Solar Mass units">
-      <created>1420288501671</created>
-      <updated>1420288501671</updated>
-    </task>
-    <task id="LOCAL-00003" summary="Last version">
-      <created>1420383349800</created>
-      <updated>1420383349800</updated>
-    </task>
-    <option name="localTasksCounter" value="4" />
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
+  <component name="TodoView" selected-index="0">
+    <todo-panel id="selected-file">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
+    <todo-panel id="default-changelist">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
+  </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
+    <frame x="-8" y="-8" width="1382" height="744" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32879046" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32879046" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32879046" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.16666667" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24925596" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39863715" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.31270358" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="true" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32027256" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -383,56 +381,100 @@
     <option name="myTodoPanelSettings">
       <TodoPanelSettings />
     </option>
-    <MESSAGE value="Added function mass from gravitation" />
-    <MESSAGE value="Mass function now in Solar Mass units" />
-    <MESSAGE value="Last version" />
-    <option name="LAST_COMMIT_MESSAGE" value="Last version" />
+    <MESSAGE value="Timing probability en discovery method toegevoegd" />
+    <option name="LAST_COMMIT_MESSAGE" value="Timing probability en discovery method toegevoegd" />
   </component>
   <component name="XDebuggerManager">
-    <breakpoint-manager />
+    <breakpoint-manager>
+      <option name="time" value="1" />
+    </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/Process.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="3246" max-vertical-offset="5304">
-          <caret line="202" column="33" selection-start-line="202" selection-start-column="33" selection-end-line="202" selection-end-column="33" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="1518" max-vertical-offset="3247">
+          <caret line="213" column="37" selection-start-line="213" selection-start-column="37" selection-end-line="213" selection-end-column="37" />
           <folding>
             <element signature="e#53#63#0" expanded="true" />
+            <element signature="e#1817#2079#0" expanded="false" />
+            <element signature="e#2122#2457#0" expanded="false" />
+            <element signature="e#2503#2911#0" expanded="false" />
+            <element signature="e#2953#3053#0" expanded="false" />
+            <element signature="e#3100#3280#0" expanded="false" />
+            <element signature="e#3351#3401#0" expanded="false" />
+            <element signature="e#3467#3511#0" expanded="false" />
+            <element signature="e#3561#3709#0" expanded="false" />
+            <element signature="e#3785#4056#0" expanded="false" />
+            <element signature="e#6238#6757#0" expanded="false" />
+            <element signature="e#6811#8829#0" expanded="false" />
+            <element signature="e#8875#10624#0" expanded="false" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Data/cumulative.csv">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="625" max-vertical-offset="72862">
-          <caret line="50" column="16" selection-start-line="50" selection-start-column="9" selection-end-line="50" selection-end-column="16" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Data/planets.csv">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="3781" max-vertical-offset="18768">
-          <caret line="235" column="20" selection-start-line="235" selection-start-column="20" selection-end-line="235" selection-end-column="20" />
-          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Process.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="2193" max-vertical-offset="4692">
-          <caret line="129" column="13" selection-start-line="129" selection-start-column="13" selection-end-line="129" selection-end-column="13" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="2057" max-vertical-offset="5287">
+          <caret line="121" column="0" selection-start-line="121" selection-start-column="0" selection-end-line="121" selection-end-column="0" />
           <folding>
             <element signature="e#53#63#0" expanded="true" />
+            <element signature="e#1817#2079#0" expanded="false" />
+            <element signature="e#2122#2457#0" expanded="false" />
+            <element signature="e#2503#2911#0" expanded="false" />
+            <element signature="e#2953#3053#0" expanded="false" />
+            <element signature="e#3100#3280#0" expanded="false" />
+            <element signature="e#3351#3401#0" expanded="false" />
+            <element signature="e#3467#3511#0" expanded="false" />
+            <element signature="e#3561#3709#0" expanded="false" />
+            <element signature="e#3785#4056#0" expanded="false" />
+            <element signature="e#6238#6757#0" expanded="false" />
+            <element signature="e#6811#8829#0" expanded="false" />
+            <element signature="e#8875#10624#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Data/planets.csv">
+    <entry file="file://$PROJECT_DIR$/Process.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="3781" max-vertical-offset="18768">
-          <caret line="235" column="20" selection-start-line="235" selection-start-column="20" selection-end-line="235" selection-end-column="20" />
-          <folding />
+        <state vertical-scroll-proportion="0.0" vertical-offset="3332" max-vertical-offset="4403">
+          <caret line="196" column="30" selection-start-line="196" selection-start-column="30" selection-end-line="196" selection-end-column="30" />
+          <folding>
+            <element signature="e#53#63#0" expanded="true" />
+            <element signature="e#1817#2079#0" expanded="false" />
+            <element signature="e#2122#2457#0" expanded="false" />
+            <element signature="e#2503#2911#0" expanded="false" />
+            <element signature="e#2953#3053#0" expanded="false" />
+            <element signature="e#3100#3280#0" expanded="false" />
+            <element signature="e#3351#3401#0" expanded="false" />
+            <element signature="e#3467#3511#0" expanded="false" />
+            <element signature="e#3561#3709#0" expanded="false" />
+            <element signature="e#3785#4056#0" expanded="false" />
+            <element signature="e#6238#6757#0" expanded="false" />
+            <element signature="e#6811#8829#0" expanded="false" />
+            <element signature="e#8875#10624#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Process.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="459" max-vertical-offset="3876">
+          <caret line="31" column="24" selection-start-line="31" selection-start-column="24" selection-end-line="31" selection-end-column="24" />
+          <folding>
+            <element signature="e#53#63#0" expanded="true" />
+            <element signature="e#1817#2079#0" expanded="false" />
+            <element signature="e#2122#2457#0" expanded="false" />
+            <element signature="e#2503#2911#0" expanded="false" />
+            <element signature="e#2953#3053#0" expanded="false" />
+            <element signature="e#3100#3280#0" expanded="false" />
+            <element signature="e#3351#3401#0" expanded="false" />
+            <element signature="e#3467#3511#0" expanded="false" />
+            <element signature="e#3561#3709#0" expanded="false" />
+            <element signature="e#3785#4056#0" expanded="false" />
+            <element signature="e#6238#6757#0" expanded="false" />
+            <element signature="e#6811#8829#0" expanded="false" />
+            <element signature="e#8875#10624#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -442,6 +484,18 @@
           <caret line="189" column="0" selection-start-line="189" selection-start-column="0" selection-end-line="189" selection-end-column="0" />
           <folding>
             <element signature="e#53#63#0" expanded="true" />
+            <element signature="e#1817#2079#0" expanded="false" />
+            <element signature="e#2122#2457#0" expanded="false" />
+            <element signature="e#2503#2911#0" expanded="false" />
+            <element signature="e#2953#3053#0" expanded="false" />
+            <element signature="e#3100#3280#0" expanded="false" />
+            <element signature="e#3351#3401#0" expanded="false" />
+            <element signature="e#3467#3511#0" expanded="false" />
+            <element signature="e#3561#3709#0" expanded="false" />
+            <element signature="e#3785#4056#0" expanded="false" />
+            <element signature="e#6238#6757#0" expanded="false" />
+            <element signature="e#6811#8829#0" expanded="false" />
+            <element signature="e#8875#10624#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -452,32 +506,58 @@
           <caret line="11" column="12" selection-start-line="11" selection-start-column="12" selection-end-line="11" selection-end-column="12" />
           <folding>
             <element signature="e#53#63#0" expanded="true" />
+            <element signature="e#1817#2079#0" expanded="false" />
+            <element signature="e#2122#2457#0" expanded="false" />
+            <element signature="e#2503#2911#0" expanded="false" />
+            <element signature="e#2953#3053#0" expanded="false" />
+            <element signature="e#3100#3280#0" expanded="false" />
+            <element signature="e#3351#3401#0" expanded="false" />
+            <element signature="e#3467#3511#0" expanded="false" />
+            <element signature="e#3561#3709#0" expanded="false" />
+            <element signature="e#3785#4056#0" expanded="false" />
+            <element signature="e#6238#6757#0" expanded="false" />
+            <element signature="e#6811#8829#0" expanded="false" />
+            <element signature="e#8875#10624#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Data/planets.csv">
+    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pydev/pydevd.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="3781" max-vertical-offset="18768">
-          <caret line="235" column="20" selection-start-line="235" selection-start-column="20" selection-end-line="235" selection-end-column="20" />
+        <state vertical-scroll-proportion="0.33240223" vertical-offset="19601" max-vertical-offset="28458">
+          <caret line="1225" column="0" selection-start-line="1225" selection-start-column="0" selection-end-line="1225" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Data/cumulative.csv">
+    <entry file="file://$PROJECT_DIR$/python test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="625" max-vertical-offset="72862">
-          <caret line="50" column="16" selection-start-line="50" selection-start-column="9" selection-end-line="50" selection-end-column="16" />
-          <folding />
+        <state vertical-scroll-proportion="0.22911051" vertical-offset="0" max-vertical-offset="371">
+          <caret line="5" column="14" selection-start-line="5" selection-start-column="14" selection-end-line="5" selection-end-column="14" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Process.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.33144477" vertical-offset="1158" max-vertical-offset="5287">
-          <caret line="75" column="17" selection-start-line="75" selection-start-column="12" selection-end-line="75" selection-end-column="17" />
+        <state vertical-scroll-proportion="0.3207547" vertical-offset="0" max-vertical-offset="4216">
+          <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
           <folding>
             <element signature="e#53#63#0" expanded="true" />
+            <element signature="e#1817#2079#0" expanded="false" />
+            <element signature="e#2122#2457#0" expanded="false" />
+            <element signature="e#2503#2911#0" expanded="false" />
+            <element signature="e#2953#3053#0" expanded="false" />
+            <element signature="e#3100#3280#0" expanded="false" />
+            <element signature="e#3351#3401#0" expanded="false" />
+            <element signature="e#3467#3511#0" expanded="false" />
+            <element signature="e#3561#3709#0" expanded="false" />
+            <element signature="e#3785#4056#0" expanded="false" />
+            <element signature="e#6238#6757#0" expanded="false" />
+            <element signature="e#6811#8829#0" expanded="false" />
+            <element signature="e#8875#10624#0" expanded="false" />
           </folding>
         </state>
       </provider>
