@@ -8,10 +8,12 @@ import scipy
 
 FILE = "cumulative.csv"
 FILE_NAME = "Data\\" + FILE
-# extra
+
+FILE_2 = "phl_hec_all_kepler.csv"
+FILE_NAME_2 = "Data\\" + FILE_2
+
 BINS = 60
 G = float(6.67384) * float((10**(-11)))  # Gravitational constant in  m^3 / (kg * s^2)
-PI = np.pi
 SOLAR_MASS = 1.9891 * float((10**30))  # Solar mass in kg
 EARTH_RADIUS = 6371000 # in meters
 FIGURE_COUNTER = 0
@@ -20,7 +22,7 @@ MISSIONLENGTH = 4*YEAR
 
 
 class Planet:
-    def __init__(self, row, label_row):
+    def __init__(self, row, label_row, derived_row = None, derived_labels = None):
         # Set variables to be retrieved
         self.distance = row[label_row.index("koi_sma")]      # Distance (AU)
         self.T_star = row[label_row.index("koi_steff")]        # T* (K)
@@ -28,18 +30,14 @@ class Planet:
         self.M_star = row[label_row.index("koi_smass")]        # M* (M_solar)
         self.period = float(row[label_row.index("koi_period")])         # P (days)
         self.R_planet = row[label_row.index("koi_prad")]         # Planet radius in Earth Radius
-
-        # try:
-        #     if float(self.R_planet) > 100:
-        #         print self.R_planet, "<==========="
-        # except:
-        #     print row[label_row.index("koi_prad")]
         self.T_planet_dat = row[label_row.index("koi_teq")]
         self.gravitation = row[label_row.index("koi_slogg")]      # Stellar surface gravitation in Log10(cm/s^2)
         self.e = row[label_row.index("koi_eccen")]             # Orbital eccentricity
         self.nr_transits = row[label_row.index("koi_num_transits")]  # Number of transits
         self.confirmed = row[label_row.index("koi_disposition")]  # CONFIRMED / CANDIDATE
-        # self.M_planet = row[label_row.index("pl_massj")]  # mass in jupiter masses
+        self.composition = derived_row[derived_labels.index("P. Composition Class")]
+        self.atmposphere = derived_row[derived_labels.index("P. Atmosphere Class")]
+        self.M_planet = derived_row[derived_labels.index("P. Mass (EU)")]  # mass in earth masses
 
     def vitalDataAvailible(self):
         """
@@ -70,7 +68,7 @@ class Planet:
         assert self.T_planet > 1
 
     def calculateDensity(self):
-        self.density =  jupiterMassToKg(self.M_planet)/(4.0/3*np.pi*  earthRadiusToMeters(self.R_planet)**3)
+        self.density =  EarthMassToKg(self.M_planet)/(4.0/3*np.pi * earthRadiusToMeters(self.R_planet)**3)
 
     def calculateWaterContent(self):
         """
@@ -90,7 +88,6 @@ class Planet:
             self.probability *= .9
 
     def standAlone(self, planets, variable="T_planet", value=20):
-        # return False
         for planet in planets:
             if planet == self:
                 continue
@@ -100,7 +97,21 @@ class Planet:
         return True
 
 
-def readData():
+def ReadDerivedData():
+    openfile = open(FILE_NAME_2, 'r')
+    data_reader = csv.reader(openfile)
+    header_row = data_reader.next()
+    data_dict = {}
+    for row in data_reader:
+        number = row[2]
+        name = "K" + (8-len(number))*"0"+number
+        data_dict[name] = row
+
+
+    return data_dict, header_row
+
+
+def readData(derived_data = None, derived_label_row = None):
     openfile = open(FILE_NAME, 'r')
     data_reader = csv.reader(openfile)
     selected_data = []
@@ -121,20 +132,25 @@ def readData():
             continue
 
         counter += 1
-        planet = Planet(row, label_row)
+
+        if derived_data != None:
+            planet = Planet(row, label_row, derived_data[row[2]], derived_label_row)
+        else:
+            planet = Planet(row, label_row)
         if not planet.vitalDataAvailible():
             continue
         planet.calculateDistance()
         planet.calculateTemperature()
-        # planet.calculateDensity()
+        if planet.M_planet != "":
+            planet.calculateDensity()
+            # if planet.density > 8000:
+            #     print "denser then Iron, SKIP"
+                # print planet.composition
+                # continue
 
-        if float(planet.R_planet) > 500:
+        if float(planet.R_planet) > 15:
             print "huge radius ({0}), SKIP".format(planet.R_planet)
             continue
-
-        # if planet.density > 8000:
-        #     print "denser then Iron, SKIP"
-        #     continue
 
         # Geometric detection correction
         geometric_probability = solarRadiusToMeters(float(planet.R_star))/AUToMeters(float(planet.distance))
@@ -149,7 +165,6 @@ def readData():
         planet.calulateTotalProbability()
 
         planets.append(planet)
-
 
     planets = removeFlukes(planets)
     for planet in planets:
@@ -166,7 +181,7 @@ def readData():
     return planets, combination, weighted_occurences
 
 
-def removeFlukes(planets, fluke_treshold = 1.0/10**3):
+def removeFlukes(planets, fluke_treshold = 1.0/10**4):
     planets_ro_remove = []
     for planet in planets:
         if planet.probability < fluke_treshold:
@@ -181,15 +196,10 @@ def removeFlukes(planets, fluke_treshold = 1.0/10**3):
     return planets
 
 
-def makeBarchart(weighted_occurences, N_bins):
+def makeBarchart(weighted_occurences, N_bins, plot_range = [0,3000], tick_size=500):
     global FIGURE_COUNTER
     temp_list = weighted_occurences.keys()
-
-    # Set plot range
-    plot_range = [0, 3000]    # [0, max(temp_list)
-
     # Layout plot variables
-    tick_size = 500              # x-axis tick size 1000
     font = {'size': 18}
     plt.rc('font', **font)
 
@@ -292,15 +302,35 @@ def makeHistogram(data, combination):
 
 def makeScatter(planets, x_axis="T_planet", y_axis="R_planet", axis = None):
     global FIGURE_COUNTER
+    x_list1 = []
+    y_list1 = []
+    x_list2 = []
+    y_list2 = []
+    x_list3 = []
+    y_list3 = []
     x_list = []
     y_list = []
     for planet in planets:
         x_list.append(float(eval("planet."+x_axis)))
         y_list.append(float(eval("planet."+y_axis)))
 
+        if planet.composition == "rocky-iron":
+            x_list1.append(float(eval("planet."+x_axis)))
+            y_list1.append(float(eval("planet."+y_axis)))
+        elif planet.composition == "gas":
+            x_list2.append(float(eval("planet."+x_axis)))
+            y_list2.append(float(eval("planet."+y_axis)))
+        elif planet.composition == "":
+            x_list3.append(float(eval("planet."+x_axis)))
+            y_list3.append(float(eval("planet."+y_axis)))
+        else:
+            print planet.composition
+            assert False
+
+    plt.figure(FIGURE_COUNTER)
+    FIGURE_COUNTER += 1
     font = {'size': 16}
     plt.rc('font', **font)
-    plt.figure(FIGURE_COUNTER)
     plt.xlabel("Planet equilibrium temperature (K)")
     plt.ylabel("$R_{planet}$ / $R_{Earth}$")
     x_range = np.linspace(0, 3000)
@@ -314,15 +344,16 @@ def makeScatter(planets, x_axis="T_planet", y_axis="R_planet", axis = None):
     plt.text(2980, 1.2,  'Earth', horizontalalignment='right')
     plt.text(2980, 3.883 + 0.2,  'Neptune', horizontalalignment='right')
     plt.text(2980, 11.209 + 0.2,  'Jupiter', horizontalalignment='right')
-    plt.xlim(0, 3000)
-    plt.ylim(0, 15)
-    FIGURE_COUNTER += 1
     # plt.xlabel(x_axis)
     # plt.ylabel(y_axis)
     if axis != None:
         plt.axis(axis)
-    plt.scatter(x_list, y_list)
 
+    # plt.scatter(x_list, y_list)
+    plt.scatter(x_list1, y_list1, color="green", label="rocky-iron")
+    plt.scatter(x_list2, y_list2, color="blue", label="gas")
+    plt.scatter(x_list3, y_list3, color="black", label="unknown")
+    plt.legend()
 
 
 def median(mylist):
@@ -383,6 +414,10 @@ def AUToMeters(AU):
     return float(AU) * 1.49597870700 * 10**11
 
 
+def EarthMassToKg(mass):
+    return float(mass) * 5.97219*10**24
+
+
 def kgToEarthMass(mass):
     return mass /(5.97219*10**24)
 
@@ -391,7 +426,7 @@ def getDistance(mass, period):
     """
     Use Kepler's third law to calculate the distance between planet and star given M_star and P_orbit
     """
-    return metersToAU((G * solarMasstoKg(mass) * (daysToSeconds(period)**2) / (4 * PI**2))**(1/3.))
+    return metersToAU((G * solarMasstoKg(mass) * (daysToSeconds(period)**2) / (4 * np.pi**2))**(1/3.))
 
 
 def getPlanetTemperature(T_star_, R_star_, distance_, e=0, albedo=.3):
@@ -406,8 +441,11 @@ def getPlanetTemperature(T_star_, R_star_, distance_, e=0, albedo=.3):
 
     return ((1 - albedo)*(T_star**4)*(R_star**2)/(4 * (distance**2) * (1 - e)**(1/2.)))**(1/4.)
 
-
-data = readData()
+derived_data, derived_label_row  = ReadDerivedData()
+data = readData(derived_data, derived_label_row)
+# makeBarchart(data[2], BINS)
+# makeBarchart(data[2], BINS, [0,500], 100)
+# makeScatter(data[0])
 # makeBarchart(data[2], BINS)
 makeScatter(data[0])
 # makeScatter(data[0], axis=[-500,3000, -5, 10])
