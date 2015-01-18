@@ -83,7 +83,7 @@ class Planet:
         self.timing_probability = timing_probability
 
     def calulateTotalProbability(self):
-        self.probability = self.timing_probability * self.geometric_probability
+        self.probability = float(self.timing_probability * self.geometric_probability)
         if self.confirmed == "CANDIDATE":
             self.probability *= .9
 
@@ -202,8 +202,8 @@ def calculatePercentage(planets, constraints):
 
     def sattisfiesConstraints(planet, constraints):
         for constraint in constraints:
-            value = eval("planet."+constraint)
-            if not constraints[constraint][0] < value < constraints[constraint][1]:
+            value = float(eval("planet."+constraint))
+            if not float(constraints[constraint][0]) <= value <= float(constraints[constraint][1]):
                 return False
         return True
 
@@ -214,8 +214,8 @@ def calculatePercentage(planets, constraints):
         if sattisfiesConstraints(planet, constraints):
             constrained_planets += 1.0/planet.probability
 
-    percentage = constrained_planets/total_planets * 100
-    print constrained_planets, total_planets
+    percentage = (constrained_planets/total_planets) * 100.
+    print constrained_planets, total_planets, percentage
     return percentage
 
 
@@ -476,8 +476,23 @@ data = readData(derived_data, derived_label_row)
 # makeScatter(data[0])
 # makeBarchart(data[2], BINS)
 # makeScatter(data[0])
-# makeScatter(data[0], axis=[-500,3000, -5, 10])
+# makeScatter(data[0], axis=[0,3000, 0, 10])
 # makeHistogram(data[0], data[1])
+R_percentages = []
+for i in np.arange(0, 2, 0.1):
+    # perc = calculatePercentage(data[0], {"T_planet":(273,373), "R_planet":(float(i)-0.56, float(i)+0.44)})
+    perc = calculatePercentage(data[0], {"T_planet":(273, 373), "distance":(float(i)-0.056, float(i)+0.044)})
+    R_percentages.append(perc)
 
-print calculatePercentage(data[0], {"T_planet":(273,373)})
-# plt.show()
+print R_percentages
+plt.scatter(np.arange(0, 2, 0.1), R_percentages, s=100)
+plt.title("Habitable Zone percentage for exoplanet radii")
+font = {'size': 18}
+plt.rc('font', **font)
+plt.xlabel("Planet radius (R / R$_{Earth}$)")
+plt.ylabel("Percentage (%)")
+plt.plot(np.arange(0, 2, 0.1), R_percentages)
+plt.xlim(0, 2.5)
+plt.ylim(0, 7)
+# print calculatePercentage(data[0], {"T_planet":(273,373), "R_planet":(0.5,2)})
+plt.show()
