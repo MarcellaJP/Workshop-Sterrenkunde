@@ -38,6 +38,18 @@ class Planet:
         self.composition = derived_row[derived_labels.index("P. Composition Class")]
         self.atmposphere = derived_row[derived_labels.index("P. Atmosphere Class")]
         self.M_planet = derived_row[derived_labels.index("P. Mass (EU)")]  # mass in earth masses
+        self.S_ID = derived_row[derived_labels.index("S. Name")]
+        self.S_type = derived_row[derived_labels.index("S. Type")] #G, F, K
+        self.N_planets = derived_row[derived_labels.index("S. No. Planets")] #G, F, K
+        self.N_planets_HZ = derived_row[derived_labels.index("S. No. Planets HZ")] #G, F, K
+        self.S_met = row[label_row.index("koi_smet")]
+
+        # self.S_type = derived_row[derived_labels.index("S. Type")]
+        # self.S_type = derived_row[derived_labels.index("S. Type")]
+        # self.confirmed = row[label_row.index("koi_disposition")]
+        # self.confirmed = row[label_row.index("koi_disposition")]
+
+
 
     def vitalDataAvailible(self):
         """
@@ -193,6 +205,25 @@ def removeFlukes(planets, fluke_treshold = 1.0/10**4):
     for planet in planets_ro_remove:
         planets.remove(planet)
     return planets
+
+
+def getConstrainedPlanets(planets, constraints):
+    """
+    constraints in form of {"T_planet":(273, 373)}
+    """
+    def sattisfiesConstraints(planet, constraints):
+        for constraint in constraints:
+            value = float(eval("planet."+constraint))
+            if not float(constraints[constraint][0]) <= value <= float(constraints[constraint][1]):
+                return False
+        return True
+
+    total_planets = 0
+    for planet in planet:
+        if sattisfiesConstraints(planet, constraints):
+            total_planets += 1.0 / planet.probability
+
+    return total_planets
 
 
 def calculatePercentage(planets, constraints):
