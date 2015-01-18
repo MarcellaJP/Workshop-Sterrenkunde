@@ -43,7 +43,7 @@ class Planet:
         """
         Return True if vital data is present, False otherwise
         """
-        if self.T_star == "" or self.R_star == "" or self.distance == "":
+        if self.T_star == "" or self.R_star == "" or self.distance == "":   # or self.M_planet == "":
             print self.T_star, self.R_star, self.distance, "SKIP"
             return False
         return True
@@ -163,7 +163,6 @@ def readData(derived_data = None, derived_label_row = None):
         planet.setTimingProbability(timing_probability)
 
         planet.calulateTotalProbability()
-
         planets.append(planet)
 
     planets = removeFlukes(planets)
@@ -194,6 +193,30 @@ def removeFlukes(planets, fluke_treshold = 1.0/10**4):
     for planet in planets_ro_remove:
         planets.remove(planet)
     return planets
+
+
+def calculatePercentage(planets, constraints):
+    """
+    constraints in form of {"T_planet":(273, 373)}
+    """
+
+    def sattisfiesConstraints(planet, constraints):
+        for constraint in constraints:
+            value = eval("planet."+constraint)
+            if not constraints[constraint][0] < value < constraints[constraint][1]:
+                return False
+        return True
+
+    total_planets = 0
+    constrained_planets = 0
+    for planet in planets:
+        total_planets += 1.0/planet.probability
+        if sattisfiesConstraints(planet, constraints):
+            constrained_planets += 1.0/planet.probability
+
+    percentage = constrained_planets/total_planets * 100
+    print constrained_planets, total_planets
+    return percentage
 
 
 def makeBarchart(weighted_occurences, N_bins, plot_range = [0,3000], tick_size=500):
@@ -311,8 +334,13 @@ def makeScatter(planets, x_axis="T_planet", y_axis="R_planet", axis = None):
     x_list = []
     y_list = []
     for planet in planets:
-        x_list.append(float(eval("planet."+x_axis)))
-        y_list.append(float(eval("planet."+y_axis)))
+        try:
+            x_list.append(float(eval("planet."+x_axis)))
+            y_list.append(float(eval("planet."+y_axis)))
+        except:
+            print (eval("planet."+x_axis))
+            print "planet."+x_axis
+            assert False
 
         if planet.composition == "rocky-iron":
             x_list1.append(float(eval("planet."+x_axis)))
@@ -447,7 +475,9 @@ data = readData(derived_data, derived_label_row)
 # makeBarchart(data[2], BINS, [0,500], 100)
 # makeScatter(data[0])
 # makeBarchart(data[2], BINS)
-makeScatter(data[0])
+# makeScatter(data[0])
 # makeScatter(data[0], axis=[-500,3000, -5, 10])
 # makeHistogram(data[0], data[1])
-plt.show()
+
+print calculatePercentage(data[0], {"T_planet":(273,373)})
+# plt.show()
