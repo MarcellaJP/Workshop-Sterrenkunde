@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import copy
 import time
 import scipy
+from scipy import stats
 
 FILE = "cumulative.csv"
 FILE_NAME = "Data\\" + FILE
@@ -218,10 +219,10 @@ def getConstrainedPlanets(planets, constraints):
                 return False
         return True
 
-    total_planets = 0
-    for planet in planet:
+    total_planets = []
+    for planet in planets:
         if sattisfiesConstraints(planet, constraints):
-            total_planets += 1.0 / planet.probability
+            total_planets.append(planet)
 
     return total_planets
 
@@ -415,6 +416,44 @@ def makeScatter(planets, x_axis="T_planet", y_axis="R_planet", axis = None):
     plt.legend()
 
 
+def plotPropertyPercentage(planets, constraints, HZ_extra = {"T_planet":(273, 373)}):
+    R_percentages = []
+    x_list = []
+    errors = []
+    stepsize = .1
+    number_points = []
+    for i in np.arange(0, 12, stepsize):
+        total = getConstrainedPlanets(planets, {"R_star":(float(i)-0.056, float(i)+0.044)})
+        HZ_dict = dict(HZ_extra.items() + {"R_star":(float(i)-0.056, float(i)+0.044)}.items())
+        HZ = getConstrainedPlanets(planets,  HZ_dict)
+        values = []
+        for planet in HZ + total:
+            values.append(1.0 / planet.probability)
+        if len(HZ) < 1:
+            continue
+        perc = sum([1.0 / planet.probability for planet in HZ]) / sum([1.0 / planet.probability for planet in total]) * 100.
+        R_percentages.append(perc)
+        x_list.append(i)
+        number_points.append(len(total))
+        errors.append(scipy.stats.sem(values, ddof=0))
+
+    plt.scatter(x_list, R_percentages, s=100)
+    plt.title("Habitable Zone percentage for stellar radius")
+    font = {'size': 18}
+    plt.rc('font', **font)
+    plt.xlabel("Planet radius (R / R$_{Sun}$)")
+    plt.ylabel("Percentage (%)")
+    plt.errorbar(x_list, R_percentages, yerr=errors, linestyle="None") #, fmt="o")
+    # plt.xlim(0, 1.5)
+    plt.ylim(0, max(R_percentages) + 20)
+    # plt.ylim(0, 7)
+    # print calculatePercentage(data[0], {"T_planet":(273,373), "R_planet":(0.5,2)})
+
+    for x,y,points in zip(x_list, R_percentages, number_points):
+        plt.annotate("{0}".format(points), (x + .02, y + 1))
+
+
+
 def median(mylist):
     sorts = sorted(mylist)
     length = len(sorts)
@@ -509,21 +548,8 @@ data = readData(derived_data, derived_label_row)
 # makeScatter(data[0])
 # makeScatter(data[0], axis=[0,3000, 0, 10])
 # makeHistogram(data[0], data[1])
-R_percentages = []
-for i in np.arange(0, 2, 0.1):
-    # perc = calculatePercentage(data[0], {"T_planet":(273,373), "R_planet":(float(i)-0.56, float(i)+0.44)})
-    perc = calculatePercentage(data[0], {"T_planet":(273, 373), "distance":(float(i)-0.056, float(i)+0.044)})
-    R_percentages.append(perc)
 
-print R_percentages
-plt.scatter(np.arange(0, 2, 0.1), R_percentages, s=100)
-plt.title("Habitable Zone percentage for exoplanet radii")
-font = {'size': 18}
-plt.rc('font', **font)
-plt.xlabel("Planet radius (R / R$_{Earth}$)")
-plt.ylabel("Percentage (%)")
-plt.plot(np.arange(0, 2, 0.1), R_percentages)
-plt.xlim(0, 2.5)
-plt.ylim(0, 7)
-# print calculatePercentage(data[0], {"T_planet":(273,373), "R_planet":(0.5,2)})
+
+
+plotPropertyPercentage(data[0], None)
 plt.show()
