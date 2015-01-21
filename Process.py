@@ -43,7 +43,6 @@ class Planet:
         self.S_type = derived_row[derived_labels.index("S. Type")] #G, F, K
         self.N_planets = derived_row[derived_labels.index("S. No. Planets")] #G, F, K
         self.N_planets_HZ = derived_row[derived_labels.index("S. No. Planets HZ")] #G, F, K
-        self.S_met = row[label_row.index("koi_smet")]
 
         # self.S_type = derived_row[derived_labels.index("S. Type")]
         # self.S_type = derived_row[derived_labels.index("S. Type")]
@@ -124,7 +123,7 @@ def ReadDerivedData():
     return data_dict, header_row
 
 
-def readData(derived_data = None, derived_label_row = None):
+def readData(derived_data = None, derived_label_row = None, weighted_occurences_variable = "T_planet", constraints = {}):
     openfile = open(FILE_NAME, 'r')
     data_reader = csv.reader(openfile)
     selected_data = []
@@ -152,18 +151,20 @@ def readData(derived_data = None, derived_label_row = None):
             planet = Planet(row, label_row)
         if not planet.vitalDataAvailible():
             continue
+
         planet.calculateDistance()
         planet.calculateTemperature()
         if planet.M_planet != "":
             planet.calculateDensity()
-            # if planet.density > 8000:
-            #     print "denser then Iron, SKIP"
-                # print planet.composition
-                # continue
+
+        if not sattisfiesConstraints(planet, constraints):
+            continue
 
         if float(planet.R_planet) > 15:
             print "huge radius ({0}), SKIP".format(planet.R_planet)
             continue
+
+
 
         # Geometric detection correction
         geometric_probability = solarRadiusToMeters(float(planet.R_star))/AUToMeters(float(planet.distance))
@@ -181,15 +182,17 @@ def readData(derived_data = None, derived_label_row = None):
     planets = removeFlukes(planets)
     for planet in planets:
         # Weighted occurences are corrected planet occurences
-        if planet.T_planet in weighted_occurences:
-            weighted_occurences[planet.T_planet] += 1/planet.probability
+        value = float(eval("planet." + weighted_occurences_variable))
+        if value in weighted_occurences:
+            weighted_occurences[value] += 1/planet.probability
         else:
-            weighted_occurences[planet.T_planet] = 1/planet.probability
+            weighted_occurences[value] = 1/planet.probability
 
-        combination.append([planet.T_planet, planet.probability])
-        selected_data.append(planet.T_planet)
+        combination.append([value, planet.probability])
+        selected_data.append(value)
 
     print "total planets", len(planets)
+    print "range {2} is between {0} and {1}".format(min(selected_data), max(selected_data), weighted_occurences_variable)
     return planets, combination, weighted_occurences
 
 
@@ -208,16 +211,28 @@ def removeFlukes(planets, fluke_treshold = 1.0/10**4):
     return planets
 
 
+def sattisfiesConstraints(planet, constraints):
+    for constraint in constraints:
+        if len(constraints[constraint]) == 1:
+            if constraints[constraint] != eval("planet." + constraint):
+                return False
+        else:
+            value = eval("planet."+constraint)
+            if value == "":
+                return False
+            else:
+                value = float(value)
+                if not float(constraints[constraint][0]) <= value <= float(constraints[constraint][1]):
+                    return Falsee
+
+
+    return True
+
+
 def getConstrainedPlanets(planets, constraints):
     """
     constraints in form of {"T_planet":(273, 373)}
     """
-    def sattisfiesConstraints(planet, constraints):
-        for constraint in constraints:
-            value = float(eval("planet."+constraint))
-            if not float(constraints[constraint][0]) <= value <= float(constraints[constraint][1]):
-                return False
-        return True
 
     total_planets = []
     for planet in planets:
@@ -251,12 +266,13 @@ def calculatePercentage(planets, constraints):
     return percentage
 
 
-def makeBarchart(weighted_occurences, N_bins, plot_range = [0,3000], tick_size=500):
+def makeBarchart(weighted_occurences, N_bins, plot_range = [0,3000], tick_size=500, variable_name = "T_planet"):
     global FIGURE_COUNTER
     temp_list = weighted_occurences.keys()
     # Layout plot variables
-    font = {'size': 18}
+    font = {'size': 15}
     plt.rc('font', **font)
+    font_size = '14'
 
     weighted_occurences_list = [0 for _ in range(N_bins)]
     planet_occurences_list = [0 for _ in range(N_bins)]
@@ -268,8 +284,7 @@ def makeBarchart(weighted_occurences, N_bins, plot_range = [0,3000], tick_size=5
     pl_count = 0
 
     for temperature in temp_list:
-        if temperature <= temp_range:
-
+        if plot_range[0] <= temperature <= plot_range[1]:
             weighted_occurences_list[int((temperature - starting_temp)/float(temp_interval))] += weighted_occurences[temperature]
             planet_occurences_list[int((temperature - starting_temp)/float(temp_interval))] += 1
             # pl_count += 1
@@ -287,16 +302,15 @@ def makeBarchart(weighted_occurences, N_bins, plot_range = [0,3000], tick_size=5
         x_positions.append(temperature / float(temp_interval))
         temperature += tick_size
 
-    # print weighted_occurences_list
-    # print planet_occurences_list
-    plt.figure(FIGURE_COUNTER)
+    # plt.figure(FIGURE_COUNTER)
+    # FIGURE_COUNTER += 1
     plt.title("Corrected Kepler planet distribution")
-    plt.xlabel("Temperature (K)", fontsize='17')
-    plt.ylabel("Number of planets", fontsize='17')
-    FIGURE_COUNTER += 1
+    plt.xlabel("Temperature (K) ({0})".format(variable_name), fontsize=font_size)
+    plt.ylabel("Number of planets", fontsize=font_size)
     plt.bar(left=range(N_bins), height=weighted_occurences_list, label="Nr of planets: " + str(int(round(pl_count)))) # "Planets in HZ : " + str(int(round(HZ_count))) + " of " + str(int(round(pl_count))))
-    plt.legend(loc='upper right', fontsize='17')
-    plt.tight_layout()
+    plt.legend(loc='upper right', fontsize=font_size)
+    # plt.tight_layout()
+    plt.subplots_adjust(hspace=.4, wspace=.4)
     plt.xticks(x_positions, x_labels)
 
 
@@ -416,42 +430,48 @@ def makeScatter(planets, x_axis="T_planet", y_axis="R_planet", axis = None):
     plt.legend()
 
 
-def plotPropertyPercentage(planets, constraints, HZ_extra = {"T_planet":(273, 373)}):
+def plotPropertyPercentage(planets, plot_range=(0,4,.3), variable = "R_star", HZ_extra = {"T_planet":(273, 373)}, constraints = {}):
     R_percentages = []
     x_list = []
     errors = []
-    stepsize = .1
+    start, end, stepsize = plot_range
     number_points = []
-    for i in np.arange(0, 12, stepsize):
-        total = getConstrainedPlanets(planets, {"R_star":(float(i)-0.056, float(i)+0.044)})
-        HZ_dict = dict(HZ_extra.items() + {"R_star":(float(i)-0.056, float(i)+0.044)}.items())
-        HZ = getConstrainedPlanets(planets,  HZ_dict)
-        values = []
-        for planet in HZ + total:
-            values.append(1.0 / planet.probability)
-        if len(HZ) < 1:
+    for i in np.arange(start + stepsize/2.0, end, stepsize):
+        variable_dict = {variable:(float(i) - stepsize/2.0, float(i) + stepsize/2.0)}
+        total_dict = dict(variable_dict.items() + constraints.items())
+        total = getConstrainedPlanets(planets, total_dict)
+        if len(total) < 5:
+            print "not enough data points for {1} < {0} < {2}"\
+                .format(variable, float(i) - stepsize/2.0, float(i) + stepsize/2.0)
             continue
+
+        HZ_dict = dict(HZ_extra.items() + total_dict.items())
+        HZ = getConstrainedPlanets(planets,  HZ_dict)
+        for planet in HZ:
+            assert planet in total
+
+        values = []
+        for planet in total:
+            values.append(1.0 / planet.probability)
+
         perc = sum([1.0 / planet.probability for planet in HZ]) / sum([1.0 / planet.probability for planet in total]) * 100.
         R_percentages.append(perc)
         x_list.append(i)
-        number_points.append(len(total))
+        number_points.append((len(HZ), len(total)))
         errors.append(scipy.stats.sem(values, ddof=0))
 
     plt.scatter(x_list, R_percentages, s=100)
-    plt.title("Habitable Zone percentage for stellar radius")
+    plt.title("Habitable Zone percentage with {0} as variable".format(variable))
     font = {'size': 18}
     plt.rc('font', **font)
     plt.xlabel("Planet radius (R / R$_{Sun}$)")
     plt.ylabel("Percentage (%)")
     plt.errorbar(x_list, R_percentages, yerr=errors, linestyle="None") #, fmt="o")
-    # plt.xlim(0, 1.5)
     plt.ylim(0, max(R_percentages) + 20)
-    # plt.ylim(0, 7)
     # print calculatePercentage(data[0], {"T_planet":(273,373), "R_planet":(0.5,2)})
 
     for x,y,points in zip(x_list, R_percentages, number_points):
-        plt.annotate("{0}".format(points), (x + .02, y + 1))
-
+        plt.annotate(r"$\frac{%i}{%i}$"%(points[0], points[1]), (x + .03, y + 1))
 
 
 def median(mylist):
@@ -539,9 +559,41 @@ def getPlanetTemperature(T_star_, R_star_, distance_, e=0, albedo=.3):
 
     return ((1 - albedo)*(T_star**4)*(R_star**2)/(4 * (distance**2) * (1 - e)**(1/2.)))**(1/4.)
 
+def makeStellarTypeSubplots(weighted_occurences_variable="R_planet"):
+
+    steller_type_list = ['A', 'K', 'M', 'G', 'F']
+    plt.subplot(2,3,1)
+    derived_data, derived_label_row  = ReadDerivedData()
+    planets, combination, weighted_occurences = readData(derived_data, derived_label_row, weighted_occurences_variable)
+    makeBarchart(weighted_occurences, BINS, plot_range=[0,15], tick_size=3, variable_name="All types")
+
+    for ster_type, i in zip(steller_type_list, range(2, len(steller_type_list) + 2)):
+        plt.subplot(2,3,i)
+        derived_data, derived_label_row  = ReadDerivedData()
+        planets, combination, weighted_occurences = readData(derived_data, derived_label_row, weighted_occurences_variable, constraints={"S_type":ster_type})
+        makeBarchart(weighted_occurences, BINS, plot_range=[0,15], tick_size=3, variable_name="type: " + ster_type)
+
+# makeStellarTypeSubplots()
+# plt.figure(1)
+# derived_data, derived_label_row  = ReadDerivedData()
+# planets, combination, weighted_occurences = readData(derived_data, derived_label_row)
+# makeBarchart(weighted_occurences, BINS)
+#
+# plt.figure(0)
+# derived_data, derived_label_row  = ReadDerivedData()
+# planets, combination, weighted_occurences = readData(derived_data, derived_label_row, weighted_occurences_variable="R_planet")
+# makeBarchart(weighted_occurences, BINS, plot_range=[0,15], tick_size=3, variable_name="R_planet")
+#
+# plt.figure(2)
+
 derived_data, derived_label_row  = ReadDerivedData()
-data = readData(derived_data, derived_label_row)
-# makeBarchart(data[2], BINS)
+planets, combination, weighted_occurences = readData(derived_data, derived_label_row, weighted_occurences_variable="density", constraints={"M_planet": (0, 10**5)})
+makeBarchart(weighted_occurences, BINS, plot_range=[1000,10000], tick_size=1500, variable_name="density")
+
+
+
+
+
 # makeBarchart(data[2], BINS, [0,500], 100)
 # makeScatter(data[0])
 # makeBarchart(data[2], BINS)
@@ -551,5 +603,8 @@ data = readData(derived_data, derived_label_row)
 
 
 
-plotPropertyPercentage(data[0], None)
+# planets, combination, weighted_occurences = readData(derived_data, derived_label_row, weighted_occurences_variable="S_met")
+# plotPropertyPercentage(planets, variable="R_planet", plot_range=(0,10,.5))
+# def plotPropertyPercentage(planets, plot_range=(0,4,.3), variable = "R_star", HZ_extra = {"T_planet":(273, 373)}, constraints = {}):
+
 plt.show()
