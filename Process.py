@@ -1,11 +1,13 @@
 __author__ = 'Marcella Wijngaarden & Joris Schefold'
 import csv
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
 import time
 import scipy
 from scipy import stats
+import csv
 
 FILE = "cumulative.csv"
 FILE_NAME = "Data\\" + FILE
@@ -20,7 +22,10 @@ EARTH_RADIUS = 6371000 # in meters
 FIGURE_COUNTER = 0
 YEAR = 365.25
 MISSIONLENGTH = 4*YEAR
-
+GASS_CONSTANT = 8.3144621
+GREENHOUSE = False
+GREENHOUSE = True
+EPSILON = .78
 
 class Planet:
     def __init__(self, row, label_row, derived_row = None, derived_labels = None):
@@ -40,6 +45,7 @@ class Planet:
         self.atmposphere = derived_row[derived_labels.index("P. Atmosphere Class")]
         self.M_planet = derived_row[derived_labels.index("P. Mass (EU)")]  # mass in earth masses
         self.S_ID = derived_row[derived_labels.index("S. Name")]
+        self.ID = row[label_row.index("kepoi_name")]  # KOI ID
         self.S_type = derived_row[derived_labels.index("S. Type")] #G, F, K
         self.N_planets = derived_row[derived_labels.index("S. No. Planets")] #G, F, K
         self.N_planets_HZ = derived_row[derived_labels.index("S. No. Planets HZ")] #G, F, K
@@ -50,6 +56,9 @@ class Planet:
         # self.confirmed = row[label_row.index("koi_disposition")]
 
 
+    def calculatePressure(self):
+        if self.M_planet != "":
+            self.P_planet = 101325 * float(self.M_planet)**2/float(self.R_planet)**3
 
     def vitalDataAvailible(self):
         """
@@ -65,7 +74,7 @@ class Planet:
             self.distance = getDistance(float(self.M_star), float(self.period))
         else:
             assert self.R_planet != ""
-            self.M_star = massFromGravitation(self.gravitation, self.R_planet)
+            self.M_star = massFromGravitation(self.gravitation, self.R_star)
             self.distance = getDistance(float(self.M_star), float(self.period))
 
     def calculateTemperature(self):
@@ -77,7 +86,9 @@ class Planet:
         else:
             self.T_planet = getPlanetTemperature(self.T_star, self.R_star, self.distance)
 
-        assert self.T_planet > 1
+        if GREENHOUSE:
+            self.T_planet *= (1/(1-EPSILON/2))**.25
+        assert self.T_planet > 10
 
     def calculateDensity(self):
         self.density =  EarthMassToKg(self.M_planet)/(4.0/3*np.pi * earthRadiusToMeters(self.R_planet)**3)
@@ -156,6 +167,7 @@ def readData(derived_data = None, derived_label_row = None, weighted_occurences_
         planet.calculateTemperature()
         if planet.M_planet != "":
             planet.calculateDensity()
+            planet.calculatePressure()
 
         if not sattisfiesConstraints(planet, constraints):
             continue
@@ -163,7 +175,6 @@ def readData(derived_data = None, derived_label_row = None, weighted_occurences_
         if float(planet.R_planet) > 15:
             print "huge radius ({0}), SKIP".format(planet.R_planet)
             continue
-
 
 
         # Geometric detection correction
@@ -223,7 +234,7 @@ def sattisfiesConstraints(planet, constraints):
             else:
                 value = float(value)
                 if not float(constraints[constraint][0]) <= value <= float(constraints[constraint][1]):
-                    return Falsee
+                    return False
 
 
     return True
@@ -294,13 +305,14 @@ def makeBarchart(weighted_occurences, N_bins, plot_range = [0,3000], tick_size=5
         else:
             continue
 
-    x_labels = []
-    x_positions = []
+    x_labels = [starting_temp]
+    x_positions = [0]
     temperature = starting_temp
-    while temperature <= plot_range[1] and temperature >= plot_range[0]:  #max(temp_list):
-        x_labels.append(temperature)
-        x_positions.append(temperature / float(temp_interval))
+    while temperature <= plot_range[1] - tick_size:  #max(temp_list):
         temperature += tick_size
+        x_labels.append(temperature)
+        x_positions.append((temperature - starting_temp )/ float(temp_interval))
+
 
     # plt.figure(FIGURE_COUNTER)
     # FIGURE_COUNTER += 1
@@ -312,6 +324,8 @@ def makeBarchart(weighted_occurences, N_bins, plot_range = [0,3000], tick_size=5
     # plt.tight_layout()
     plt.subplots_adjust(hspace=.4, wspace=.4)
     plt.xticks(x_positions, x_labels)
+    return [starting_temp + i * temp_interval for i in range(N_bins + 1)], weighted_occurences_list
+
 
 
 def makeHistogram(data, combination):
@@ -380,6 +394,8 @@ def makeScatter(planets, x_axis="T_planet", y_axis="R_planet", axis = None):
     x_list = []
     y_list = []
     for planet in planets:
+        if eval("planet."+x_axis) == "" or eval("planet."+y_axis) == "" :
+            continue
         try:
             x_list.append(float(eval("planet."+x_axis)))
             y_list.append(float(eval("planet."+y_axis)))
@@ -418,8 +434,8 @@ def makeScatter(planets, x_axis="T_planet", y_axis="R_planet", axis = None):
     plt.text(2980, 1.2,  'Earth', horizontalalignment='right')
     plt.text(2980, 3.883 + 0.2,  'Neptune', horizontalalignment='right')
     plt.text(2980, 11.209 + 0.2,  'Jupiter', horizontalalignment='right')
-    # plt.xlabel(x_axis)
-    # plt.ylabel(y_axis)
+    plt.xlabel(x_axis)
+    plt.ylabel(y_axis)
     if axis != None:
         plt.axis(axis)
 
@@ -559,21 +575,100 @@ def getPlanetTemperature(T_star_, R_star_, distance_, e=0, albedo=.3):
 
     return ((1 - albedo)*(T_star**4)*(R_star**2)/(4 * (distance**2) * (1 - e)**(1/2.)))**(1/4.)
 
-def makeStellarTypeSubplots(weighted_occurences_variable="R_planet"):
+def makeStellarTypeSubplots(weighted_occurences_variable="T_planet", plott_range=[0,3000]):
 
     steller_type_list = ['A', 'K', 'M', 'G', 'F']
     plt.subplot(2,3,1)
     derived_data, derived_label_row  = ReadDerivedData()
     planets, combination, weighted_occurences = readData(derived_data, derived_label_row, weighted_occurences_variable)
-    makeBarchart(weighted_occurences, BINS, plot_range=[0,15], tick_size=3, variable_name="All types")
+    makeBarchart(weighted_occurences, BINS, plot_range=plott_range, tick_size=3, variable_name="All types")
 
     for ster_type, i in zip(steller_type_list, range(2, len(steller_type_list) + 2)):
         plt.subplot(2,3,i)
         derived_data, derived_label_row  = ReadDerivedData()
         planets, combination, weighted_occurences = readData(derived_data, derived_label_row, weighted_occurences_variable, constraints={"S_type":ster_type})
-        makeBarchart(weighted_occurences, BINS, plot_range=[0,15], tick_size=3, variable_name="type: " + ster_type)
+        makeBarchart(weighted_occurences, BINS, plot_range=plott_range, tick_size=3, variable_name="type: " + ster_type)
+
+
+def safeDataMinitab():
+    print "writing to file..."
+    with open('minitlab_data.csv', 'wb') as csvfile:
+            writer = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(["T_planet", "M_planet", "M_star", "S_type", "distance", "probability", "weight"])
+            for planet in planets:
+                writer.writerow([planet.T_planet, planet.M_planet, planet.M_star, planet.S_type, planet.distance, planet.probability, gewicht])
+    print "done"
+
+
+def safeDataMinitab2(x_labels, heights):
+    assert len(x_labels)  == len(heights)
+    print "writing to file..."
+    with open('minitlab_data.csv', 'wb') as csvfile:
+        writer = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(["x", "height"])
+        for i in range(len(heights)):
+            height = heights[i]
+            x_pos = x_labels[i]
+            writer.writerow([x_pos, height])
+    print "done"
+
+
+def safeDataMathematica(planets):
+    print "writing to file..."
+    skips =0
+    with open(r'C:\Users\joris\Dropbox\Workshop Sterrenkunde\HONGER.csv', 'wb') as csvfile:
+            writer = csv.writer(csvfile, quoting=csv.QUOTE_MINIMAL)
+            # writer.writerow(["ID_planet","T_planet", "P_planet"])
+            for planet in planets:
+                if planet.M_planet != "":
+                    print planet.T_planet, planet.P_planet
+
+                    writer.writerow([planet.ID, planet.T_planet, planet.P_planet])
+                else:
+                    skips += 1
+    print "done but failed to write {0} planets".format(skips)
+
+
+def gammaFit(x, theta=27967.73176, k=0.11456):
+    # x /= 25.0
+    return 1/(math.gamma(k) * theta**k) * x ** (k - 1) *\
+           math.exp(-x/theta)
+
+
+def gammaFit2(x, alpha, beta):
+    return beta**alpha *  x ** (alpha - 1) * math.exp(-x * beta) / (math.gamma(alpha))
+
+
+derived_data, derived_label_row  = ReadDerivedData()
+planets, combination, weighted_occurences = readData(derived_data, derived_label_row)
+safeDataMathematica(planets)
+makeBarchart(weighted_occurences, BINS, plot_range=[0,3000], tick_size=500, variable_name="T_planet")
+# makeScatter(planets, "M_planet", "R_planet")
+plt.show()
+
+# derived_data, derived_label_row  = ReadDerivedData()
+# planets, combination, weighted_occurences = readData(derived_data, derived_label_row)
+# x, y = makeBarchart(weighted_occurences, BINS, plot_range=[0,3000], tick_size=500, variable_name="T_planet")
+# x_2 = [(x[i] + x[i+1])/2.0 for i in (range(len(x)-1))]
+# fit_alpha,fit_loc,fit_beta=scipy.stats.gamma.fit(y, floc=0)
+# # y = [gammaFit2(x, alpha=fit_alpha, beta=fit_beta) for x in x_2]
+# y = [gammaFit(x, alpha=2, beta=6) for x in x_2]
+# print y
+# plt.figure(5)
+# plt.plot(x_2,y)
+# plt.show()
+
+
+# y_3 = []
+# for x in np.arange(0,20,.001):
+#     y_3.append(gammaFit(x))
+# plt.plot(np.arange(0,20,.001), y_3)
+
+
 
 # makeStellarTypeSubplots()
+# plt.show()
+
 # plt.figure(1)
 # derived_data, derived_label_row  = ReadDerivedData()
 # planets, combination, weighted_occurences = readData(derived_data, derived_label_row)
@@ -586,12 +681,10 @@ def makeStellarTypeSubplots(weighted_occurences_variable="R_planet"):
 #
 # plt.figure(2)
 
-derived_data, derived_label_row  = ReadDerivedData()
-planets, combination, weighted_occurences = readData(derived_data, derived_label_row, weighted_occurences_variable="density", constraints={"M_planet": (0, 10**5)})
-makeBarchart(weighted_occurences, BINS, plot_range=[1000,10000], tick_size=1500, variable_name="density")
-
-
-
+# derived_data, derived_label_row  = ReadDerivedData()
+# planets, combination, weighted_occurences = readData(derived_data, derived_label_row, weighted_occurences_variable="density", constraints={"M_planet": (0, 10**5)})
+# makeBarchart(weighted_occurences, BINS, plot_range=[1000,10000], tick_size=1500, variable_name="density")
+#
 
 
 # makeBarchart(data[2], BINS, [0,500], 100)
@@ -602,9 +695,8 @@ makeBarchart(weighted_occurences, BINS, plot_range=[1000,10000], tick_size=1500,
 # makeHistogram(data[0], data[1])
 
 
-
-# planets, combination, weighted_occurences = readData(derived_data, derived_label_row, weighted_occurences_variable="S_met")
-# plotPropertyPercentage(planets, variable="R_planet", plot_range=(0,10,.5))
-# def plotPropertyPercentage(planets, plot_range=(0,4,.3), variable = "R_star", HZ_extra = {"T_planet":(273, 373)}, constraints = {}):
-
-plt.show()
+# derived_data, derived_label_row  = ReadDerivedData()
+# planets, combination, weighted_occurences = readData(derived_data, derived_label_row, weighted_occurences_variable="R_planet")
+# plotPropertyPercentage(planets, variable="R_planet", plot_range=(0,5,.8))
+# # def plotPropertyPercentage(planets, plot_range=(0,4,.3), variable = "R_star", HZ_extra = {"T_planet":(273, 373)}, constraints = {}):
+# plt.show()
