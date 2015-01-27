@@ -7,6 +7,7 @@ import copy
 import time
 import scipy
 from scipy import stats
+from scipy.optimize import curve_fit
 import csv
 
 FILE = "cumulative.csv"
@@ -14,6 +15,9 @@ FILE_NAME = "Data\\" + FILE
 
 FILE_2 = "phl_hec_all_kepler.csv"
 FILE_NAME_2 = "Data\\" + FILE_2
+
+FILE_3 = "data_phases_GH.csv"
+FILE_NAME_3 = "Data\\" + FILE_3
 
 BINS = 60
 G = float(6.67384) * float((10**(-11)))  # Gravitational constant in  m^3 / (kg * s^2)
@@ -30,6 +34,7 @@ EPSILON = .78
 class Planet:
     def __init__(self, row, label_row, derived_row = None, derived_labels = None):
         # Set variables to be retrieved
+        self.phase = ""
         self.distance = row[label_row.index("koi_sma")]      # Distance (AU)
         self.T_star = row[label_row.index("koi_steff")]        # T* (K)
         self.R_star = row[label_row.index("koi_srad")]        # R* (R_solar)
@@ -58,7 +63,7 @@ class Planet:
 
     def calculatePressure(self):
         if self.M_planet != "":
-            self.P_planet = 101325 * float(self.M_planet)**2/float(self.R_planet)**3
+            self.P_planet = 101325 * float(self.M_planet)**2/(float(self.R_planet)**3)
 
     def vitalDataAvailible(self):
         """
@@ -119,8 +124,10 @@ class Planet:
                 return False
         return True
 
+    def setWaterPhase(self, phase):
+        self.phase = phase
 
-def ReadDerivedData():
+def readDerivedData():
     openfile = open(FILE_NAME_2, 'r')
     data_reader = csv.reader(openfile)
     header_row = data_reader.next()
@@ -130,11 +137,22 @@ def ReadDerivedData():
         name = "K" + (8-len(number))*"0"+number
         data_dict[name] = row
 
-
     return data_dict, header_row
 
 
-def readData(derived_data = None, derived_label_row = None, weighted_occurences_variable = "T_planet", constraints = {}):
+def readPhaseData():
+    openfile = open(FILE_NAME_3, 'r')
+    data_reader = csv.reader(openfile)
+    data_dict = {}
+    for row in data_reader:
+        name = row[0]
+        phase = row[3]
+        data_dict[name] = phase
+
+    return data_dict
+
+
+def readData(derived_data = None, derived_label_row = None, phase_dict = None, weighted_occurences_variable = "T_planet", constraints = {}):
     openfile = open(FILE_NAME, 'r')
     data_reader = csv.reader(openfile)
     selected_data = []
@@ -165,6 +183,12 @@ def readData(derived_data = None, derived_label_row = None, weighted_occurences_
 
         planet.calculateDistance()
         planet.calculateTemperature()
+        if phase_dict != None:
+            try:
+                planet.setWaterPhase(phase_dict[planet.ID])
+                print planet.phase
+            except KeyError:
+                pass
         if planet.M_planet != "":
             planet.calculateDensity()
             planet.calculatePressure()
@@ -182,8 +206,8 @@ def readData(derived_data = None, derived_label_row = None, weighted_occurences_
         planet.setGemetricProbability(geometric_probability)
 
         timing_probability = 1
-        if 2 < MISSIONLENGTH / planet.period < 3:
-            time_period = MISSIONLENGTH % planet.period  # Period in which a transit must occure
+        if MISSIONLENGTH / planet.period < 3:
+            time_period = MISSIONLENGTH % planet.period  # Period in which a transit must occur
             timing_probability = time_period / planet.period
         planet.setTimingProbability(timing_probability)
 
@@ -277,13 +301,13 @@ def calculatePercentage(planets, constraints):
     return percentage
 
 
-def makeBarchart(weighted_occurences, N_bins, plot_range = [0,3000], tick_size=500, variable_name = "T_planet"):
+def makeBarchart(weighted_occurences, N_bins, plot_range = [0,3000], tick_size=500, variable_name="T_planet", title = None):
     global FIGURE_COUNTER
     temp_list = weighted_occurences.keys()
     # Layout plot variables
-    font = {'size': 15}
-    plt.rc('font', **font)
-    font_size = '14'
+    # font = {'size': 15}
+    # plt.rc('font', **font)
+    # font_size = '14'
 
     weighted_occurences_list = [0 for _ in range(N_bins)]
     planet_occurences_list = [0 for _ in range(N_bins)]
@@ -313,15 +337,20 @@ def makeBarchart(weighted_occurences, N_bins, plot_range = [0,3000], tick_size=5
         x_labels.append(temperature)
         x_positions.append((temperature - starting_temp )/ float(temp_interval))
 
+    ### Plot percentages ###
+    # for i in range(len(weighted_occurences_list)):
+    #     weighted_occurences_list[i] = weighted_occurences_list[i]/float(pl_count)
 
-    # plt.figure(FIGURE_COUNTER)
-    # FIGURE_COUNTER += 1
-    plt.title("Corrected Kepler planet distribution")
-    plt.xlabel("Temperature (K) ({0})".format(variable_name), fontsize=font_size)
-    plt.ylabel("Number of planets", fontsize=font_size)
+    if title != None:
+        plt.title(title)
+    else:
+        plt.title("Corrected Kepler planet distribution")
+
+    # plt.xlabel("Temperature (K) ({0})".format(variable_name))
+    plt.xlabel("Temperature (K)")
+    plt.ylabel("Number of planets")
     plt.bar(left=range(N_bins), height=weighted_occurences_list, label="Nr of planets: " + str(int(round(pl_count)))) # "Planets in HZ : " + str(int(round(HZ_count))) + " of " + str(int(round(pl_count))))
-    plt.legend(loc='upper right', fontsize=font_size)
-    # plt.tight_layout()
+    plt.legend(loc='upper right',prop={'size':13})
     plt.subplots_adjust(hspace=.4, wspace=.4)
     plt.xticks(x_positions, x_labels)
     return [starting_temp + i * temp_interval for i in range(N_bins + 1)], weighted_occurences_list
@@ -393,58 +422,89 @@ def makeScatter(planets, x_axis="T_planet", y_axis="R_planet", axis = None):
     y_list3 = []
     x_list = []
     y_list = []
+    total = 0
+    HZ = 0
+    HZ_incl_gas = 0
     for planet in planets:
         if eval("planet."+x_axis) == "" or eval("planet."+y_axis) == "" :
             continue
-        try:
-            x_list.append(float(eval("planet."+x_axis)))
-            y_list.append(float(eval("planet."+y_axis)))
-        except:
-            print (eval("planet."+x_axis))
-            print "planet."+x_axis
-            assert False
+        if planet.M_planet == "":
+            continue
 
-        if planet.composition == "rocky-iron":
+        # try:
+        #     x_list.append(float(eval("planet."+x_axis)))
+        #     y_list.append(float(eval("planet."+y_axis)))
+        # except:
+        #     print (eval("planet."+x_axis))
+        #     print "planet."+x_axis
+        #     assert False
+        total += 1
+
+        if planet.phase == "liquid":
             x_list1.append(float(eval("planet."+x_axis)))
             y_list1.append(float(eval("planet."+y_axis)))
-        elif planet.composition == "gas":
+            HZ += 1
+            HZ_incl_gas += 1
+        # elif planet.phase != "":
+        #     x_list2.append(float(eval("planet."+x_axis)))
+        #     y_list2.append(float(eval("planet."+y_axis)))
+        elif planet.phase == "liquid" and planet.R_planet > 2.5:
             x_list2.append(float(eval("planet."+x_axis)))
             y_list2.append(float(eval("planet."+y_axis)))
-        elif planet.composition == "":
+            HZ_incl_gas += 1
+        elif planet.phase == "gas":
+            x_list2.append(float(eval("planet."+x_axis)))
+            y_list2.append(float(eval("planet."+y_axis)))
+        elif planet.phase == "solid":
             x_list3.append(float(eval("planet."+x_axis)))
             y_list3.append(float(eval("planet."+y_axis)))
-        else:
-            print planet.composition
-            assert False
+        elif planet.phase == "supercritical fluid":
+            x_list.append(float(eval("planet."+x_axis)))
+            y_list.append(float(eval("planet."+y_axis)))
 
-    plt.figure(FIGURE_COUNTER)
+
+        # else:
+        #     print planet.composition
+        #     assert False
+
+    plt.figure(FIGURE_COUNTER,  figsize=(8, 6), dpi=80, facecolor='w', edgecolor='k')
     FIGURE_COUNTER += 1
     font = {'size': 16}
     plt.rc('font', **font)
-    plt.xlabel("Planet equilibrium temperature (K)")
-    plt.ylabel("$R_{planet}$ / $R_{Earth}$")
+    plt.xlabel("Planet surface temperature (K)")
+    plt.ylabel("$M_{planet}$ / $M_{Earth}$")
     x_range = np.linspace(0, 3000)
     y_range = np.linspace(0, 15)
-    plt.axvspan(273, 373, facecolor='g', alpha=0.5)
+    # plt.axvspan(273, 373, facecolor='g', alpha=0.5)
     plt.plot(x_range, [1 for i in x_range], c="k")
     plt.plot(x_range, [3.883 for i in x_range], c="k")
     plt.plot(x_range, [11.209 for i in x_range], c="k")
-    plt.plot([273 for i in y_range], y_range, "g--", lw=3)
-    plt.plot([373 for i in y_range], y_range, "g--", lw=3)
+    # plt.plot([273 for i in y_range], y_range, "g--", lw=3)
+    # plt.plot([373 for i in y_range], y_range, "g--", lw=3)
     plt.text(2980, 1.2,  'Earth', horizontalalignment='right')
     plt.text(2980, 3.883 + 0.2,  'Neptune', horizontalalignment='right')
     plt.text(2980, 11.209 + 0.2,  'Jupiter', horizontalalignment='right')
-    plt.xlabel(x_axis)
-    plt.ylabel(y_axis)
+    # plt.xlabel(x_axis)
+    # plt.ylabel(y_axis)
     if axis != None:
         plt.axis(axis)
 
-    # plt.scatter(x_list, y_list)
-    plt.scatter(x_list1, y_list1, color="green", label="rocky-iron")
-    plt.scatter(x_list2, y_list2, color="blue", label="gas")
-    plt.scatter(x_list3, y_list3, color="black", label="unknown")
-    plt.legend()
+    plt.xlim(0, 3000)
+    plt.ylim(0, 20)
+    # plt.figure(num=None, figsize=(8, 6), dpi=80, facecolor='w', edgecolor='k')
 
+    # plt.scatter(x_list2, y_list2, color="#4682b4", label="Gas")
+    # plt.scatter(x_list3, y_list3, color="#8b4513", label="Supercritical fluid")
+
+    plt.scatter(x_list3, y_list3, color="black", label="Solid")
+    plt.scatter(x_list1, y_list1, color="blue", label="Liquid")
+    plt.scatter(x_list2, y_list2, color="#4682b4", label="Gas")
+    plt.scatter(x_list, y_list, color="yellow", label="Supercritical fluid")
+    plt.legend(bbox_to_anchor=(0.9, 0.84), bbox_transform=plt.gcf().transFigure)
+    print 'Total planets = ', total
+    print 'HZ planets = ', HZ, '       with gas planets = ', HZ_incl_gas
+    print 'Percentage in HZ = ', (float(HZ)/float(total)) * 100
+    print 'Percentage in HZ with gas planets = ', (float(HZ_incl_gas)/float(total)) * 100
 
 def plotPropertyPercentage(planets, plot_range=(0,4,.3), variable = "R_star", HZ_extra = {"T_planet":(273, 373)}, constraints = {}):
     R_percentages = []
@@ -575,19 +635,19 @@ def getPlanetTemperature(T_star_, R_star_, distance_, e=0, albedo=.3):
 
     return ((1 - albedo)*(T_star**4)*(R_star**2)/(4 * (distance**2) * (1 - e)**(1/2.)))**(1/4.)
 
-def makeStellarTypeSubplots(weighted_occurences_variable="T_planet", plott_range=[0,3000]):
+def makeStellarTypeSubplots(weighted_occurences_variable="T_planet", plott_range=[0,3000],tick=500):
 
     steller_type_list = ['A', 'K', 'M', 'G', 'F']
     plt.subplot(2,3,1)
     derived_data, derived_label_row  = ReadDerivedData()
     planets, combination, weighted_occurences = readData(derived_data, derived_label_row, weighted_occurences_variable)
-    makeBarchart(weighted_occurences, BINS, plot_range=plott_range, tick_size=3, variable_name="All types")
+    makeBarchart(weighted_occurences, BINS, plot_range=plott_range, tick_size=tick, variable_name="", title="All star types")
 
     for ster_type, i in zip(steller_type_list, range(2, len(steller_type_list) + 2)):
-        plt.subplot(2,3,i)
+        plt.subplot(2, 3, i)
         derived_data, derived_label_row  = ReadDerivedData()
-        planets, combination, weighted_occurences = readData(derived_data, derived_label_row, weighted_occurences_variable, constraints={"S_type":ster_type})
-        makeBarchart(weighted_occurences, BINS, plot_range=plott_range, tick_size=3, variable_name="type: " + ster_type)
+        planets, combination, weighted_occurences = readData(derived_data, derived_label_row, weighted_occurences_variable, constraints={"S_type": ster_type})
+        makeBarchart(weighted_occurences, BINS, plot_range=plott_range, tick_size=tick, title= "" + ster_type + " Type star")
 
 
 def safeDataMinitab():
@@ -636,15 +696,50 @@ def gammaFit(x, theta=27967.73176, k=0.11456):
 
 
 def gammaFit2(x, alpha, beta):
-    return beta**alpha *  x ** (alpha - 1) * math.exp(-x * beta) / (math.gamma(alpha))
+    return (beta**alpha) * (x ** (alpha - 1)) * np.exp(-x * beta) / (math.gamma(alpha))
 
 
-derived_data, derived_label_row  = ReadDerivedData()
-planets, combination, weighted_occurences = readData(derived_data, derived_label_row)
-safeDataMathematica(planets)
-makeBarchart(weighted_occurences, BINS, plot_range=[0,3000], tick_size=500, variable_name="T_planet")
-# makeScatter(planets, "M_planet", "R_planet")
-plt.show()
+def fit_gaussion(x, a, b, c):
+    return a * np.exp((-1*(x - b)**2.)/(2*c**2.))
+
+
+def fit_beta(x, a, b):
+    return scipy.stats.betaprime.pdf(x, a, b)
+
+
+
+derived_data, derived_label_row = readDerivedData()
+phase_dict = readPhaseData()
+planets, combination, weighted_occurences = readData(derived_data, derived_label_row, phase_dict)
+fout = 0
+fout_2 = 0
+for planet in planets:
+    if planet.phase == "liquid" and (373<planet.T_planet or planet.T_planet < 273):
+        fout += 1
+    elif planet.phase != "liquid" and (373>planet.T_planet> 273):
+        fout_2 += 1
+
+print abs(fout - fout_2)
+
+
+# safeDataMathematica(planets)
+# x, y = makeBarchart(weighted_occurences, BINS, plot_range=[0, 3000], tick_size=500, variable_name="T_planet")
+# x_2 = [(x[i] + x[i+1])/2.0 for i in (range(len(x)-1))]
+# plt.plot(x_2, y)
+# plt.show()
+# popt, pcov = scipy.optimize.curve_fit(fit_beta, np.array(x_2), np.array(y), p0=np.array([110, 200]))
+# print popt, pcov
+#
+# plot_fit = []
+# for i in x:
+#     plot_fit.append(fit_beta(i, popt[0], popt[1]))
+
+
+# plt.plot([val/BINS for val in x], plot_fit, c='r')
+# makeBarchart(weighted_occurences, BINS, plot_range=[0, 3000], tick_size=500, variable_name="T_planet")
+
+makeScatter(planets, "T_planet", "M_planet")
+# plt.show()
 
 # derived_data, derived_label_row  = ReadDerivedData()
 # planets, combination, weighted_occurences = readData(derived_data, derived_label_row)
@@ -667,7 +762,7 @@ plt.show()
 
 
 # makeStellarTypeSubplots()
-# plt.show()
+
 
 # plt.figure(1)
 # derived_data, derived_label_row  = ReadDerivedData()
@@ -693,7 +788,7 @@ plt.show()
 # makeScatter(data[0])
 # makeScatter(data[0], axis=[0,3000, 0, 10])
 # makeHistogram(data[0], data[1])
-
+plt.show()
 
 # derived_data, derived_label_row  = ReadDerivedData()
 # planets, combination, weighted_occurences = readData(derived_data, derived_label_row, weighted_occurences_variable="R_planet")
