@@ -440,7 +440,7 @@ def makeScatter(planets, x_axis="T_planet", y_axis="R_planet", axis = None):
         #     assert False
         total += 1
 
-        if planet.phase == "liquid":
+        if planet.phase == "liquid" and float(planet.R_planet) <= 2.5:
             x_list1.append(float(eval("planet."+x_axis)))
             y_list1.append(float(eval("planet."+y_axis)))
             HZ += 1
@@ -448,7 +448,7 @@ def makeScatter(planets, x_axis="T_planet", y_axis="R_planet", axis = None):
         # elif planet.phase != "":
         #     x_list2.append(float(eval("planet."+x_axis)))
         #     y_list2.append(float(eval("planet."+y_axis)))
-        elif planet.phase == "liquid" and planet.R_planet > 2.5:
+        elif planet.phase == "liquid" and float(planet.R_planet) > 2.5:
             x_list2.append(float(eval("planet."+x_axis)))
             y_list2.append(float(eval("planet."+y_axis)))
             HZ_incl_gas += 1
@@ -497,9 +497,10 @@ def makeScatter(planets, x_axis="T_planet", y_axis="R_planet", axis = None):
     # plt.scatter(x_list3, y_list3, color="#8b4513", label="Supercritical fluid")
 
     plt.scatter(x_list3, y_list3, color="black", label="Solid")
-    plt.scatter(x_list1, y_list1, color="blue", label="Liquid")
+
     plt.scatter(x_list2, y_list2, color="#4682b4", label="Gas")
-    plt.scatter(x_list, y_list, color="yellow", label="Supercritical fluid")
+    plt.scatter(x_list1, y_list1, color="green", label="Potential habitable planet")
+    # plt.scatter(x_list, y_list, color="yellow", label="Supercritical fluid")
     plt.legend(bbox_to_anchor=(0.9, 0.84), bbox_transform=plt.gcf().transFigure)
     print 'Total planets = ', total
     print 'HZ planets = ', HZ, '       with gas planets = ', HZ_incl_gas
